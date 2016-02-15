@@ -1,0 +1,15 @@
+{
+    "indentationRules": {
+        "increaseIndentPattern": "/^\\s*(((if|when|elif|else|except|finally|for|try|while|of)\\b.*:)|((proc|macro|iterator|template|converter)\\b.*\\=)|(import|var|const|type))\\s*$/",
+        "decreaseIndentPattern": "/^\\s*(((return|break|continue|raise)\\n)|((elif|else|except|finally)\\b.*:))\\s*$/"
+    },
+    "wordPattern": "/(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)/g",
+    "comments": {
+        "lineComment": "#",
+        "blockComment": ["#[", "]#"]
+    },
+    "brackets": [
+        ["[", "]"],
+        ["(", ")"]
+    ]
+}

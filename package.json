@@ -1,0 +1,102 @@
+{
+    "name": "nim",
+    "displayName": "nim-vscode",
+    "description": "Nim language support for Visual Studio Code",
+    "version": "0.1.0",
+    "publisher": "kosz78",
+    "author": {
+        "name": "Xored Software Inc."
+    },
+    "icon": "images/nim_icon.png",
+    "categories": [
+        "Languages",
+        "Linters"
+    ],
+    "galleryBanner": {
+        "color": "#152534",
+        "theme": "dark"
+    },
+    "scripts": {
+        "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+        "compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+    },
+    "dependencies": {
+        "vscode-languageclient": "0.10.x"
+    },
+    "devDependencies": {
+        "typescript": "^1.8.0",
+        "vscode": "0.10.x"
+    },
+    "engines": {
+        "vscode": "^0.10.1"
+    },
+    "activationEvents": [
+        "onLanguage:nim",
+        "onCommand:nim.build",
+        "onCommand:nim.run",
+        "onCommand:nim.runTest"
+    ],
+    "main": "./out/src/nimMain",
+    "contributes": {
+        "languages": [
+            {
+                "id": "nim",
+                "aliases": ["Nim", "nim"],
+                "extensions": [".nim"],
+                "configuration": "./nim.configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "nim",
+                "scopeName": "source.nim",
+                "path": "./syntaxes/Nim.tmLanguage"
+            }
+        ],
+        "commands": [
+            {
+                "command": "nim.build",
+                "title": "Nim: Build project",
+                "description": "Build project"
+            },
+            {
+                "command": "nim.run",
+                "title": "Nim: Run project",
+                "description": "Build and run nim project"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "nim.run",
+                "key": "f6",
+                "mac": "f6"
+            },
+            {
+                "command": "nim.runTest",
+                "key": "alt+f6",
+                "mac": "alt+f6"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "Nim configuration",
+            "properties": {
+                "nim.project": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Nim project file, if empty use current selected."
+                },
+                "nim.buildOnSave": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Rebuild project on save."
+                },
+                "nim.lintOnSave": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Check code by using 'nim check' on save."
+                }
+            }
+        }
+    }
+}
