@@ -16,6 +16,10 @@
         "color": "#152534",
         "theme": "dark"
     },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/pragmagic/vscode-nim.git"
+    },
     "scripts": {
         "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
         "compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
