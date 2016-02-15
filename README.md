@@ -1,5 +1,7 @@
 # Nim for Visual Studio Code
 
+[![Build Status](https://travis-ci.org/pragmagic/vscode-nim.svg?branch=master)](https://travis-ci.org/pragmagic/vscode-nim)
+
 This extension adds language support for the Nim language to VS Code, including:
 
 - Colorization
@@ -36,7 +38,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 
 ### Commands
 
-In addition to integrated editing features, the extension also provides several commands in the Command Palette for working with Go files:
+In addition to integrated editing features, the extension also provides several commands in the Command Palette for working with Nim files:
 
 * `Nim: Buld project` to build a project or opened file
 * `Nim: Run project` to build and run a project or opened file
