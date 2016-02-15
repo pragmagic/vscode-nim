@@ -4,7 +4,7 @@
 
 This extension adds language support for the Nim language to VS Code, including:
 
-- Colorization
+- Syntax Highlight
 - Code Completion
 - Goto Definition
 - Find References
