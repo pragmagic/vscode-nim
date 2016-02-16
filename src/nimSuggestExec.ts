@@ -127,6 +127,7 @@ export function execNimSuggest(suggestType: NimSuggestType, filename: string,
     process.stdout.on("data", listener);
 
     let cmd = NimSuggestType[suggestType] + ' "' + filename + '"' + (dirtyFile ? (';"' + dirtyFile + '"') : "") + ":" + line + ":" + column + "\n";
+    console.log(cmd);
     process.stdin.write(cmd);
   }));
 }
@@ -144,6 +145,9 @@ function initNimSuggestProcess(nimProject: string): void {
     console.log("error");
     console.log(data.toString());
   });
+  process.on('close', () => {
+    nimSuggestProcessCache[nimProject] = null;
+  });
   nimSuggestProcessCache[nimProject] = process;
 }
 
@@ -151,10 +155,11 @@ function getWorkingFile(filename: string) {
   var config = vscode.workspace.getConfiguration('nim');
 
   var cwd = vscode.workspace.rootPath;
-  filename = vscode.workspace.asRelativePath(filename);
-  if (filename.startsWith(path.sep)) {
-    filename = filename.slice(1);
+  if (!path.isAbsolute(filename)) {
+    filename = vscode.workspace.asRelativePath(filename);
+    if (filename.startsWith(path.sep)) {
+        filename = filename.slice(1);
+    }
   }
-
   return config["project"] || filename;
 }

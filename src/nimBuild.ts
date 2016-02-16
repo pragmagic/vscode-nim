@@ -67,7 +67,7 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
 
   if (!!nimConfig['buildOnSave']) {
     let projectFile = getProjectFile(filename);
-    runningToolsPromises.push(nimExec("compile", [projectFile], true, true, parseErrors));
+    runningToolsPromises.push(nimExec(nimConfig['buildCommand'] || "c", [projectFile], true, true, parseErrors));
   }
   if (!!nimConfig['lintOnSave']) {
     var tmppath = path.normalize(path.join(os.tmpdir(), "nim-code-check"));

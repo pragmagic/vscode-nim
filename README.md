@@ -30,7 +30,8 @@ The following Visual Studio Code settings are available for the Nim extension.  
 
 ```javascript
 {
-	"nim.buildOnSave": true,
+	"nim.buildOnSave": false,
+    "nim.buildCommand": "c",
 	"nim.lintOnSave": true,
 	"nim.project": "project.nim"
 }

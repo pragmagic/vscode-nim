@@ -2,8 +2,8 @@ language: node_js
 
 sudo: false
 
-os:
-  - linux
+node_js:
+  - "0.12"
 
 install:
   - npm install

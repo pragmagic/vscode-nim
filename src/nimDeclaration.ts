@@ -17,7 +17,7 @@ export class NimDefinitionProvider implements vscode.DefinitionProvider {
       execNimSuggest(NimSuggestType.def, document.fileName, position.line + 1, position.character,
         getDirtyFile(document)).then(result => {
 
-          if (result.length > 0) {
+          if (result && result.length > 0) {
             let def = result.pop();
             resolve(new vscode.Location(vscode.Uri.file(def.path), new vscode.Position(def.line - 1, def.column)));
           } else {
