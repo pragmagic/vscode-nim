@@ -59,7 +59,7 @@ function parseErrors(lines: string[]): ICheckResult[] {
         var match = /^([^(]*)?\((\d+)(,\s(\d+))?\) (\w+): (.*)/.exec(lines[i]);
         if (!match) continue;
         var [_, file, lineStr, _, charStr, severity, msg] = match;
-        ret.push({ file: path.resolve(vscode.workspace.rootPath, file), line: parseInt(lineStr), column: parseInt(charStr), msg, severity });
+        ret.push({ file: file, line: parseInt(lineStr), column: parseInt(charStr), msg, severity });
     }
     return ret;
 }
@@ -70,11 +70,12 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
 
     if (!!nimConfig['buildOnSave']) {
         let projectFile = getProjectFile(filename);
-        runningToolsPromises.push(nimExec(nimConfig['buildCommand'] || "c", [projectFile], true, true, parseErrors));
+        let args = ['--listFullPaths', projectFile]; 
+        runningToolsPromises.push(nimExec(nimConfig['buildCommand'] || "c", args, true, true, parseErrors));
     }
     if (!!nimConfig['lintOnSave']) {
-        var tmppath = path.normalize(path.join(os.tmpdir(), "nim-code-check"));
-        var args = ["--out:", tmppath, getProjectFile(filename)];
+        let tmppath = path.normalize(path.join(os.tmpdir(), "nim-code-check"));
+        let args = ['--listFullPaths', '--out:', tmppath, getProjectFile(filename)];
         runningToolsPromises.push(nimExec("check", args, true, false, parseErrors));
     }
 
