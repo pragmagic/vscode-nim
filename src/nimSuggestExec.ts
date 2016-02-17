@@ -11,7 +11,7 @@ import path = require('path');
 import os = require('os');
 import fs = require('fs');
 import net = require('net');
-import { getNimSuggestExecPath, getProjectFile, timeoutPromise } from './nimUtils'
+import {getNimSuggestExecPath} from './nimUtils';
 
 let nimSuggestProcessCache: { [project: string]: cp.ChildProcess; } = {};
 
@@ -78,8 +78,7 @@ export interface INimSuggestResult {
 
 export function execNimSuggest(suggestType: NimSuggestType, filename: string,
     line: number, column: number, dirtyFile?: string): Promise<INimSuggestResult[]> {
-    // return promise with 1 sec timeout
-    return timeoutPromise(1000, new Promise<INimSuggestResult[]>((resolve, reject) => {
+    return new Promise<INimSuggestResult[]>((resolve, reject) => {
         var nimSuggestExec = getNimSuggestExecPath();
         // if nimsuggest not found just ignore
         if (!nimSuggestExec) {
@@ -93,10 +92,12 @@ export function execNimSuggest(suggestType: NimSuggestType, filename: string,
         var process = nimSuggestProcessCache[file];
 
         var str = "";
+        var resolved = false;
         var listener = (data) => {
             let chunk: string = data.toString();
             str += chunk;
-            if (chunk.trim() === "" || chunk.trim() === ">") {
+            if (chunk.endsWith(os.EOL+os.EOL) || chunk.trim() === "") {
+                resolved = true;
                 process.stdout.removeListener("data", listener);
                 var lines = str.toString().split(os.EOL);
                 // TODO parse result by suggesttype prefix
@@ -116,8 +117,6 @@ export function execNimSuggest(suggestType: NimSuggestType, filename: string,
                         });
                     }
                 }
-                // console.log(str);
-                // console.log("!!!!!!!!!!!!");
                 resolve(result);
             }
         };
@@ -125,7 +124,20 @@ export function execNimSuggest(suggestType: NimSuggestType, filename: string,
 
         let cmd = NimSuggestType[suggestType] + ' "' + filename + '"' + (dirtyFile ? (';"' + dirtyFile + '"') : "") + ":" + line + ":" + column + "\n";
         process.stdin.write(cmd);
-    }));
+        
+        // set 1 sec timeout
+        setTimeout(function() {
+            if (!resolve) { 
+                console.log("Nimsuggest timeout:");
+                console.log("- process args: " + (<any> process).spawnargs);
+                console.log("- process dir: " + (<any> process).cwd);
+                console.log("- command: " + cmd);
+                console.log("- output: " + str);
+                process.stdout.removeListener("data", listener);
+                resolve([]);
+            }
+        }, 1000);
+    });
 }
 
 export function closeAllNimSuggestProcesses(): void {
@@ -135,11 +147,19 @@ export function closeAllNimSuggestProcesses(): void {
     nimSuggestProcessCache = {};
 }
 
+export function closeNimSuggestProcess(filename: string): void {
+    var file = getWorkingFile(filename);
+    if (nimSuggestProcessCache[file]) {
+        nimSuggestProcessCache[file].kill();
+        nimSuggestProcessCache[file] = null;
+    }
+}
+
 function initNimSuggestProcess(nimProject: string): void {
     let process = cp.spawn(getNimSuggestExecPath(), [nimProject], { cwd: vscode.workspace.rootPath });
     process.stderr.on("data", (data) => {
-//        console.log("error");
-//        console.log(data.toString());
+        //        console.log("error");
+        //        console.log(data.toString());
     });
     process.on('close', () => {
         nimSuggestProcessCache[nimProject] = null;

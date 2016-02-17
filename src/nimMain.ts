@@ -7,7 +7,7 @@
 
 import vscode = require('vscode');
 
-import { closeAllNimSuggestProcesses } from './nimSuggestExec';
+import { closeAllNimSuggestProcesses, closeNimSuggestProcess } from './nimSuggestExec';
 import { NimCompletionItemProvider } from './nimSuggest';
 import { NimDefinitionProvider } from './nimDeclaration';
 import { NimReferenceProvider } from './nimReferences';
@@ -31,6 +31,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     ctx.subscriptions.push(diagnosticCollection);
 
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
+    vscode.workspace.onDidCloseTextDocument(closeDocumentHandler);
 
     offerToInstallTools();
     startBuildOnSaveWatcher(ctx.subscriptions);
@@ -106,4 +107,11 @@ function startBuildOnSaveWatcher(subscriptions: vscode.Disposable[]) {
         let nimConfig = vscode.workspace.getConfiguration('nim');
         runBuilds(document, nimConfig);
     }, null, subscriptions);
+}
+
+function closeDocumentHandler(document: vscode.TextDocument): void {
+    let config = vscode.workspace.getConfiguration('nim');
+    if (!config['project']) {
+        closeNimSuggestProcess(document.fileName);
+    }
 }

@@ -100,15 +100,6 @@ export function getDirtyFile(document: vscode.TextDocument): string {
     return dirtyFilePath;
 }
 
-export function timeoutPromise<T>(ms: number, promise: Promise<T>): Promise<T> {
-    return new Promise<T>(function(resolve, reject) {
-        promise.then(resolve);
-        setTimeout(function() {
-            reject(new Error('Timeout after ' + ms + ' ms'));
-        }, ms);
-    });
-}
-
 function getBinPath(tool: string): string {
     if (pathesCache[tool]) return pathesCache[tool];
     if (process.env["PATH"]) {
