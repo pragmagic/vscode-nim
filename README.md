@@ -10,6 +10,8 @@ This extension adds language support for the Nim language to VS Code, including:
 - Find References
 - File outline
 - Build-on-save
+- Workspace symbol search
+
 
 ## Using
 
@@ -33,7 +35,8 @@ The following Visual Studio Code settings are available for the Nim extension.  
 	"nim.buildOnSave": false,
     "nim.buildCommand": "c",
 	"nim.lintOnSave": true,
-	"nim.project": "project.nim"
+	"nim.project": "project.nim",
+    "nim.licenseString": "# Copyright 2016.\n\n"
 }
 ```
 
@@ -50,6 +53,13 @@ In addition to integrated editing features, the extension also provides several 
 * Rename support
 * Documentation
 * Quick info
-* Workspace symbol search
 * Code action for imports (suggest available modules to import)
 * Debug support 
+
+## History
+
+### 0.4.3
+* Added workspace symbol search support 
+* Rewrote nimsuggest handling to use TCP mode
+* Added `nim.licenseString` for inserting default header in new nim files
+* Updated `run project` command to run single file in non project mode 

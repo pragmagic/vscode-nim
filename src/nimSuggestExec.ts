@@ -13,7 +13,10 @@ import fs = require('fs');
 import net = require('net');
 import {getNimSuggestExecPath} from './nimUtils';
 
-let nimSuggestProcessCache: { [project: string]: cp.ChildProcess; } = {};
+let nimSuggestProcessCache: { [project: string]: { process: cp.ChildProcess, portNumber: number }; } = {};
+
+// TODO make get free port instead hardcode
+var portCounter: number = 6001;
 
 export enum NimSuggestType {
     /** Suggest from position */
@@ -82,67 +85,69 @@ export function execNimSuggest(suggestType: NimSuggestType, filename: string,
         var nimSuggestExec = getNimSuggestExecPath();
         // if nimsuggest not found just ignore
         if (!nimSuggestExec) {
-            resolve([]);
+            return resolve([]);
         }
         var file = getWorkingFile(filename);
+
         if (!nimSuggestProcessCache[file]) {
             initNimSuggestProcess(file);
         }
 
-        var process = nimSuggestProcessCache[file];
-
+        let cmd = NimSuggestType[suggestType] + ' "' + filename + '"' + (dirtyFile ? (';"' + dirtyFile + '"') : "") + ":" + line + ":" + column + "\n";
+        var processDesc = nimSuggestProcessCache[file];
         var str = "";
         var resolved = false;
-        var listener = (data) => {
-            let chunk: string = data.toString();
-            str += chunk;
-            if (chunk.endsWith(os.EOL+os.EOL) || chunk.trim() === "") {
-                resolved = true;
-                process.stdout.removeListener("data", listener);
-                var lines = str.toString().split(os.EOL);
-                // TODO parse result by suggesttype prefix
-                var result: INimSuggestResult[] = [];
-                for (var i = 0; i < lines.length; i++) {
-                    var parts = lines[i].split('\t');
-                    if (parts.length === 8) {
-                        result.push({
-                            answerType: parts[0],
-                            suggest: parts[1],
-                            name: parts[2],
-                            type: parts[3],
-                            path: parts[4],
-                            line: parseInt(parts[5]),
-                            column: parseInt(parts[6]),
-                            documentation: parts[7] != '""' ? parts[7] : ""
-                        });
-                    }
-                }
-                resolve(result);
-            }
-        };
-        process.stdout.on("data", listener);
 
-        let cmd = NimSuggestType[suggestType] + ' "' + filename + '"' + (dirtyFile ? (';"' + dirtyFile + '"') : "") + ":" + line + ":" + column + "\n";
-        process.stdin.write(cmd);
+        var socket = net.createConnection(processDesc.portNumber, () => {
+            socket.end(cmd);
+        });
+
+        socket.on("data", data => {
+            str += data.toString();
+        });
+
+        socket.on("end", () => {
+            resolved = true;
+            var lines = str.toString().split(os.EOL);
+            // TODO parse result by suggesttype prefix
+            var result: INimSuggestResult[] = [];
+            for (var i = 0; i < lines.length; i++) {
+                var parts = lines[i].split('\t');
+                if (parts.length >= 8) {
+                    result.push({
+                        answerType: parts[0],
+                        suggest: parts[1],
+                        name: parts[2],
+                        type: parts[3],
+                        path: parts[4],
+                        line: parseInt(parts[5]),
+                        column: parseInt(parts[6]),
+                        documentation: parts[7] != '""' ? parts[7] : ""
+                    });
+                }
+            }
+            resolve(result);
+            socket.destroy();
+        });
         
         // set 1 sec timeout
         setTimeout(function() {
-            if (!resolve) { 
+            if (!resolve) {
                 console.log("Nimsuggest timeout:");
-                console.log("- process args: " + (<any> process).spawnargs);
-                console.log("- process dir: " + (<any> process).cwd);
+                console.log("- process args: " + (<any>process).spawnargs);
+                console.log("- process dir: " + (<any>process).cwd);
                 console.log("- command: " + cmd);
                 console.log("- output: " + str);
-                process.stdout.removeListener("data", listener);
+                socket.destroy();
                 resolve([]);
             }
-        }, 1000);
+        }, 2000);
     });
 }
 
 export function closeAllNimSuggestProcesses(): void {
     for (var project in nimSuggestProcessCache) {
-        nimSuggestProcessCache[project].kill();
+        nimSuggestProcessCache[project].process.kill();
     }
     nimSuggestProcessCache = {};
 }
@@ -150,13 +155,14 @@ export function closeAllNimSuggestProcesses(): void {
 export function closeNimSuggestProcess(filename: string): void {
     var file = getWorkingFile(filename);
     if (nimSuggestProcessCache[file]) {
-        nimSuggestProcessCache[file].kill();
+        nimSuggestProcessCache[file].process.kill();
         nimSuggestProcessCache[file] = null;
     }
 }
 
 function initNimSuggestProcess(nimProject: string): void {
-    let process = cp.spawn(getNimSuggestExecPath(), [nimProject], { cwd: vscode.workspace.rootPath });
+    let portNumber = ++portCounter;
+    let process = cp.spawn(getNimSuggestExecPath(), ['--port:' + portNumber, '--v2', nimProject], { cwd: vscode.workspace.rootPath });
     process.stderr.on("data", (data) => {
         //        console.log("error");
         //        console.log(data.toString());
@@ -164,7 +170,7 @@ function initNimSuggestProcess(nimProject: string): void {
     process.on('close', () => {
         nimSuggestProcessCache[nimProject] = null;
     });
-    nimSuggestProcessCache[nimProject] = process;
+    nimSuggestProcessCache[nimProject] = { process: process, portNumber: portNumber };
 }
 
 function getWorkingFile(filename: string) {

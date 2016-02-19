@@ -11,7 +11,7 @@ import { closeAllNimSuggestProcesses, closeNimSuggestProcess } from './nimSugges
 import { NimCompletionItemProvider } from './nimSuggest';
 import { NimDefinitionProvider } from './nimDeclaration';
 import { NimReferenceProvider } from './nimReferences';
-import { NimDocumentSymbolProvider } from './nimOutline';
+import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutline';
 import { NimSignatureHelpProvider } from './nimSignature';
 import { check, buildAndRun, ICheckResult } from './nimBuild';
 import { offerToInstallTools } from './nimInstallTools'
@@ -19,6 +19,7 @@ import { NIM_MODE } from './nimMode'
 import { showHideStatus } from './nimStatus'
 
 let diagnosticCollection: vscode.DiagnosticCollection;
+var fileWatcher: vscode.FileSystemWatcher;
 
 export function activate(ctx: vscode.ExtensionContext): void {
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.'));
@@ -33,14 +34,37 @@ export function activate(ctx: vscode.ExtensionContext): void {
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
     vscode.workspace.onDidCloseTextDocument(closeDocumentHandler);
 
+    let workspaceSymbolProvider = new NimWorkspaceSymbolProvider();
+    fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.nim");
+
+    fileWatcher.onDidCreate((uri) => {
+        let config = vscode.workspace.getConfiguration('nim');
+        if (config.has('licenseString')) {
+            let path = uri.fsPath.toLowerCase();
+            if (path.endsWith('.nim') || path.endsWith('.nims')) {
+                var edit = new vscode.WorkspaceEdit();
+                edit.insert(uri, new vscode.Position(0, 0), config['licenseString']);
+                vscode.workspace.applyEdit(edit);
+            }
+        }
+        workspaceSymbolProvider.fileChanged(uri);
+    });
+
+    fileWatcher.onDidChange((uri) => {
+        workspaceSymbolProvider.fileChanged(uri);
+    });
+
+    fileWatcher.onDidDelete((uri) => {
+        workspaceSymbolProvider.fileDeleted(uri);
+    });
+    ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(workspaceSymbolProvider));
+
     offerToInstallTools();
     startBuildOnSaveWatcher(ctx.subscriptions);
 
     ctx.subscriptions.push(vscode.commands.registerCommand('nim.run', () => {
         let config = vscode.workspace.getConfiguration('nim');
-        if (!!config['project']) {
-            buildAndRun(config['project']);
-        }
+        buildAndRun(config['project'] || vscode.window.activeTextEditor.document.fileName);
     }));
 
     if (vscode.window.activeTextEditor) {
@@ -51,6 +75,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
 function deactivate() {
     closeAllNimSuggestProcesses();
+    fileWatcher.dispose();
 }
 
 function runBuilds(document: vscode.TextDocument, nimConfig: vscode.WorkspaceConfiguration) {

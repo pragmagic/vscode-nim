@@ -2,7 +2,7 @@
     "name": "nim",
     "displayName": "nim-vscode",
     "description": "Nim language support for Visual Studio Code",
-    "version": "0.4.2",
+    "version": "0.4.3",
     "publisher": "kosz78",
     "author": {
         "name": "Xored Software Inc."
@@ -102,11 +102,6 @@
                 "command": "nim.run",
                 "key": "f6",
                 "mac": "f6"
-            },
-            {
-                "command": "nim.runTest",
-                "key": "alt+f6",
-                "mac": "alt+f6"
             }
         ],
         "configuration": {
