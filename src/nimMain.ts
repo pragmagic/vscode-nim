@@ -6,6 +6,7 @@
 'use strict';
 
 import vscode = require('vscode');
+import fs = require('fs');
 
 import { closeAllNimSuggestProcesses, closeNimSuggestProcess } from './nimSuggestExec';
 import { NimCompletionItemProvider } from './nimSuggest';
@@ -42,9 +43,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
         if (config.has('licenseString')) {
             let path = uri.fsPath.toLowerCase();
             if (path.endsWith('.nim') || path.endsWith('.nims')) {
-                var edit = new vscode.WorkspaceEdit();
-                edit.insert(uri, new vscode.Position(0, 0), config['licenseString']);
-                vscode.workspace.applyEdit(edit);
+                if (fs.stat(uri.fsPath, (err, stats) => {
+                    if (stats.size === 0) {
+                        var edit = new vscode.WorkspaceEdit();
+                        edit.insert(uri, new vscode.Position(0, 0), config['licenseString']);
+                        vscode.workspace.applyEdit(edit);
+                    }
+                }));
             }
         }
         workspaceSymbolProvider.fileChanged(uri);

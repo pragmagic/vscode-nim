@@ -63,7 +63,7 @@ export function getNimbleExecPath(): string {
 }
 
 export function getNimSuggestExecPath(force?: boolean): string {
-    if (!isNimSuggestInstalled && !force) {
+    if (!isNimSuggestInstalled && !(isNimSuggestInstalled == undefined) && !force) {
         return null;
     }
     let tool = 'nimsuggest';
