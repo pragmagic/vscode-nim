@@ -47,6 +47,39 @@
 		</dict>
 		<dict>
 			<key>begin</key>
+			<string>(^[ \t]+)?(?=#\[)</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.whitespace.comment.leading.nim</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(?!\G)</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>#\[</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.comment.nim</string>
+						</dict>
+					</dict>
+					<key>end</key>
+					<string>\]#</string>
+					<key>name</key>
+                    <string>comment.block.nim</string> 
+				</dict>
+			</array>
+		</dict>
+		<dict>
+			<key>begin</key>
 			<string>(^[ \t]+)?(?=#)</string>
 			<key>beginCaptures</key>
 			<dict>

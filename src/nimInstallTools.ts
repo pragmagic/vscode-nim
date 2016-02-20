@@ -24,10 +24,9 @@ export function offerToInstallTools() {
         return;
     }
 
-    showNimStatus('Nimsuggest Tools Missing', 'nim.promptforinstall', 'Nimsuggest installed');
+    showNimStatus('Nimsuggest Tools Missing', 'nim.promptforinstall', 'Install Nimsuggest');
     vscode.commands.registerCommand('nim.promptforinstall', () => {
         promptForInstallNimSuggest();
-        hideNimStatus();
     });
 
     function promptForInstallNimSuggest() {
@@ -46,7 +45,8 @@ export function offerToInstallTools() {
                 proc.on('close', function(code) {
                     if (code === 0) {
                         // if installed successfully get path
-                        outputWindow.append(getNimSuggestExecPath());
+                        hideNimStatus();
+                        getNimSuggestExecPath(true);
                     }
                 });
             }

@@ -105,6 +105,14 @@ export function execNimSuggest(suggestType: NimSuggestType, filename: string,
         socket.on("data", data => {
             str += data.toString();
         });
+        
+        socket.on("error", err => {
+            if (err.code === "ECONNREFUSED") {
+                closeNimSuggestProcess(filename);
+                resolved = true;
+                resolve([]);
+            }
+        });
 
         socket.on("end", () => {
             resolved = true;
@@ -162,7 +170,7 @@ export function closeNimSuggestProcess(filename: string): void {
 
 function initNimSuggestProcess(nimProject: string): void {
     let portNumber = ++portCounter;
-    let process = cp.spawn(getNimSuggestExecPath(), ['--port:' + portNumber, '--v2', nimProject], { cwd: vscode.workspace.rootPath });
+    let process = cp.spawn(getNimSuggestExecPath(), ['--address:127.0.0.1', '--port:' + portNumber, '--v2', nimProject], { cwd: vscode.workspace.rootPath });
     process.stderr.on("data", (data) => {
         //        console.log("error");
         //        console.log(data.toString());

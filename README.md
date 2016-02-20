@@ -4,7 +4,7 @@
 
 This extension adds language support for the Nim language to VS Code, including:
 
-- Syntax Highlight
+- Syntax Highlight (nim, nimble, nim.cfg)
 - Code Completion
 - Goto Definition
 - Find References
@@ -49,7 +49,6 @@ In addition to integrated editing features, the extension also provides several 
 
 ## TODO
 
-* Syntax highlight for `nim.cfg`
 * Rename support
 * Documentation
 * Quick info
@@ -57,6 +56,10 @@ In addition to integrated editing features, the extension also provides several 
 * Debug support 
 
 ## History
+
+### 0.4.4
+* Fixed #7 - Block comments / inline comments are not supported
+* Fixed #8 - Terrible experience with clean install w/o nimsuggest
 
 ### 0.4.3
 * Added workspace symbol search support 

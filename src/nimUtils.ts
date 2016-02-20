@@ -13,6 +13,7 @@ import vscode = require('vscode');
 import { showNimStatus } from './nimStatus'
 
 let pathesCache: { [tool: string]: string; } = {};
+var isNimSuggestInstalled = undefined;
 
 export function correctBinname(binname: string) {
     if (process.platform === 'win32') {
@@ -61,22 +62,24 @@ export function getNimbleExecPath(): string {
     return path;
 }
 
-export function getNimSuggestExecPath(): string {
+export function getNimSuggestExecPath(force?: boolean): string {
+    if (!isNimSuggestInstalled && !force) {
+        return null;
+    }
     let tool = 'nimsuggest';
     let nimSuggestPath = getBinPath(tool);
-    if (!nimSuggestPath) {
+    if (!nimSuggestPath && (isNimSuggestInstalled == undefined || force)) {
         var nimble = getNimbleExecPath();
         try {
             var output = cp.execFileSync(nimble, ['path', tool]).toString();
             let newPath = path.resolve(output.trim(), correctBinname(tool));
             if (fs.existsSync(newPath)) {
                 pathesCache[tool] = newPath;
+                isNimSuggestInstalled = true;
                 return newPath;
             }
         } catch (e) {
-            var outputWindow = vscode.window.createOutputChannel("Nimble Output");
-            outputWindow.append(e.output.toString());
-            outputWindow.show(2);
+            isNimSuggestInstalled = false;
         }
     }
     return nimSuggestPath;
