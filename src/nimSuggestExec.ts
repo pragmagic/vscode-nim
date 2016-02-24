@@ -80,7 +80,7 @@ export interface INimSuggestResult {
 }
 
 export function execNimSuggest(suggestType: NimSuggestType, filename: string,
-    line: number, column: number, dirtyFile?: string): Promise<INimSuggestResult[]> {
+    line: number, column: number, dirtyFile?: string, onClose?: () => void): Promise<INimSuggestResult[]> {
     return new Promise<INimSuggestResult[]>((resolve, reject) => {
         var nimSuggestExec = getNimSuggestExecPath();
         // if nimsuggest not found just ignore
@@ -105,7 +105,7 @@ export function execNimSuggest(suggestType: NimSuggestType, filename: string,
         socket.on("data", data => {
             str += data.toString();
         });
-        
+
         socket.on("error", err => {
             if (err.code === "ECONNREFUSED") {
                 closeNimSuggestProcess(filename);
@@ -134,10 +134,21 @@ export function execNimSuggest(suggestType: NimSuggestType, filename: string,
                     });
                 }
             }
-            resolve(result);
             socket.destroy();
+            if (!isProjectMode() && vscode.window.visibleTextEditors.every(
+                    (value, index, array) => { return value.document.uri.fsPath !== filename; })
+            ) {
+                closeNimSuggestProcess(filename);
+            }
+            resolve(result);
         });
-        
+
+        socket.on("close", () => {
+            if (onClose) {
+                onClose();
+            }
+        });
+
         // set 1 sec timeout
         setTimeout(function() {
             if (!resolve) {
@@ -192,4 +203,9 @@ function getWorkingFile(filename: string) {
         }
     }
     return config["project"] || filename;
+}
+
+function isProjectMode(): boolean {
+    var config = vscode.workspace.getConfiguration('nim');
+    return !!config["project"];
 }

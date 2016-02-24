@@ -15,12 +15,19 @@ export class NimWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvide
     // TODO use NeDB for index storage
     public constructor() {
         vscode.workspace.findFiles("**/*.nim", "").then(urls => {
-            urls.forEach(uri => {
+            let iterate = (uri: vscode.Uri) : void => {
                 let file = uri.fsPath;
-                getFileSymbols(file).then(infos => {
+                getFileSymbols(file, null, () => {
+                    if (urls.length > 0) {
+                        iterate(urls.pop());
+                    }
+                }).then(infos => {
                     this.workspaceSymbols[file] = infos;
                 });
-            });
+            };
+            if (urls.length > 0) {
+                iterate(urls.pop());
+            }
         });
     }
 
@@ -57,9 +64,9 @@ export class NimDocumentSymbolProvider implements vscode.DocumentSymbolProvider 
     }
 }
 
-function getFileSymbols(file: string, dirtyFile?: string): Promise<vscode.SymbolInformation[]> {
+function getFileSymbols(file: string, dirtyFile?: string, onClose?: () => void): Promise<vscode.SymbolInformation[]> {
     return new Promise<vscode.SymbolInformation[]>((resolve, reject) => {
-        execNimSuggest(NimSuggestType.outline, file, 0, 0, dirtyFile)
+        execNimSuggest(NimSuggestType.outline, file, 0, 0, dirtyFile, onClose)
             .then(result => {
                 var symbols = [];
                 result.forEach(item => {
