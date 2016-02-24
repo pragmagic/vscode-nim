@@ -57,6 +57,10 @@ In addition to integrated editing features, the extension also provides several 
 
 ## History
 
+### 0.4.6
+* Fixed #9 - nimsuggest "attacks" (one process per nim file in workspace)
+* Added type index persistence with NeDB
+
 ### 0.4.4
 * Fixed #7 - Block comments / inline comments are not supported
 * Fixed #8 - Terrible experience with clean install w/o nimsuggest

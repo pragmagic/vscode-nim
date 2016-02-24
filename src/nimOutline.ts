@@ -6,23 +6,58 @@
 'use strict';
 
 import vscode = require('vscode');
+import Datastore = require('nedb');
+import path = require('path');
+import fs = require('fs');
+
 import { getDirtyFile } from './nimUtils'
 import { execNimSuggest, INimSuggestResult, NimSuggestType } from './nimSuggestExec'
 
 export class NimWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
     private workspaceSymbols: { [file: string]: vscode.SymbolInformation[]; } = {};
-    
-    // TODO use NeDB for index storage
-    public constructor() {
+    private db: Datastore;
+
+    public constructor(extensionPath: string) {
+        this.db = new Datastore({ filename: path.join(extensionPath, 'types.db'), autoload: true });
+        this.db.persistence.setAutocompactionInterval(600000); // compact each 10 munites
+        this.db.ensureIndex({ fieldName: 'workspace' });
+        this.db.ensureIndex({ fieldName: 'file' });
+        this.db.ensureIndex({ fieldName: 'timestamp' });
+        this.db.ensureIndex({ fieldName: 'type' });
+
         vscode.workspace.findFiles("**/*.nim", "").then(urls => {
-            let iterate = (uri: vscode.Uri) : void => {
+            let db = this.db;
+            let iterate = (uri: vscode.Uri): void => {
                 let file = uri.fsPath;
-                getFileSymbols(file, null, () => {
-                    if (urls.length > 0) {
-                        iterate(urls.pop());
+                let timestamp = fs.statSync(file).ctime.getTime();
+                db.findOne({ file: file, timestamp: timestamp }, function(err, doc) {
+                    if (!doc) {
+                        console.log("index: " + file);
+                        getFileSymbols(file, null, () => {
+                            if (urls.length > 0) {
+                                iterate(urls.pop());
+                            }
+                        }).then(infos => {
+                            db.remove({ file: file }, { multi: true }, (err, n) => {
+                                infos.forEach((value) => {
+                                    db.insert({
+                                        workspace: vscode.workspace.rootPath,
+                                        file: value.location.uri.fsPath,
+                                        range_start: value.location.range.start,
+                                        range_end: value.location.range.end,
+                                        type: value.name,
+                                        container: value.containerName,
+                                        kind: value.kind,
+                                        timestamp: timestamp
+                                    });
+                                });
+                            });
+                        });
+                    } else {
+                        if (urls.length > 0) {
+                            iterate(urls.pop());
+                        }
                     }
-                }).then(infos => {
-                    this.workspaceSymbols[file] = infos;
                 });
             };
             if (urls.length > 0) {
@@ -33,27 +68,49 @@ export class NimWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvide
 
     public provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): Thenable<vscode.SymbolInformation[]> {
         return new Promise<vscode.SymbolInformation[]>((resolve, reject) => {
-            let symbols = [];
-            Object.keys(this.workspaceSymbols).forEach(file => {
-                this.workspaceSymbols[file].forEach(symbolInfo => {
-                    if (symbolInfo.name.toLowerCase().indexOf(query) >= 0) {
-                        symbols.push(symbolInfo);
-                    }
+            try {
+                let reg = new RegExp(query, 'i');
+                this.db.find({ workspace : vscode.workspace.rootPath, type: reg }, (err, docs) => {
+                    let symbols = [];
+                    docs.forEach(doc => {
+                        symbols.push(
+                            new vscode.SymbolInformation(
+                                doc.type, doc.kind, 
+                                new vscode.Range(new vscode.Position(doc.range_start._line, doc.range_start._character), 
+                                                new vscode.Position(doc.range_end._line, doc.range_end._character)), 
+                                vscode.Uri.file(doc.file), doc.container));
+                    });
+                    resolve(symbols);
                 });
-            });
-            resolve(symbols);
+            } catch (e) {
+                resolve([]);
+            }
         });
     }
 
     public fileDeleted(uri: vscode.Uri): void {
-        let file = uri.fsPath;
-        this.workspaceSymbols[file] = null;
+        this.db.remove({ file: uri.fsPath }, { multi: true });
     }
 
     public fileChanged(uri: vscode.Uri): void {
+        let db = this.db;
         let file = uri.fsPath;
-        getFileSymbols(file).then(infos => {
-            this.workspaceSymbols[file] = infos;
+        db.remove({ file: file }, { multi: true }, (err, n) => {
+            getFileSymbols(file).then(infos => {
+                let timestamp = fs.statSync(file).ctime.getTime();
+                infos.forEach((value) => {
+                    db.insert({
+                        workspace: vscode.workspace.rootPath,
+                        file: value.location.uri.fsPath,
+                        range_start: value.location.range.start,
+                        range_end: value.location.range.end,
+                        type: value.name,
+                        container: value.containerName,
+                        kind: value.kind,
+                        timestamp: timestamp
+                    });
+                });
+            });
         });
     }
 }

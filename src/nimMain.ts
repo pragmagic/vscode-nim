@@ -21,7 +21,7 @@ import { showHideStatus } from './nimStatus'
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
-
+ 
 export function activate(ctx: vscode.ExtensionContext): void {
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.'));
     ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
@@ -35,7 +35,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
     vscode.workspace.onDidCloseTextDocument(closeDocumentHandler);
 
-    let workspaceSymbolProvider = new NimWorkspaceSymbolProvider();
+    console.log(ctx.extensionPath);
+    let workspaceSymbolProvider = new NimWorkspaceSymbolProvider(ctx.extensionPath);
     fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.nim");
 
     fileWatcher.onDidCreate((uri) => {
