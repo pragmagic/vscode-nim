@@ -4,6 +4,13 @@ out/test/**
 test/**
 src/**
 **/*.map
-node_modules/**
 .gitignore
 tsconfig.json
+
+node_modules/.bin/**
+node_modules/gulp*/**
+node_modules/vsce/**
+node_modules/mocha/**
+node_modules/tslint/**
+node_modules/typescript/**
+node_modules/vscode/**
