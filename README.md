@@ -57,6 +57,11 @@ In addition to integrated editing features, the extension also provides several 
 
 ## History
 
+### 0.4.9
+* Improved database indexes
+* Fixed miltiline error in nim check
+* Fixed nimsuggest problem with mixed case path in windows
+
 ### 0.4.6
 * Fixed #9 - nimsuggest "attacks" (one process per nim file in workspace)
 * Added type index persistence with NeDB
