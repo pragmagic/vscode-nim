@@ -8,6 +8,8 @@
 import vscode = require('vscode');
 import { getDirtyFile } from './nimUtils'
 import { execNimSuggest, INimSuggestResult, NimSuggestType } from './nimSuggestExec'
+import { getNormalizedWorkspacePath } from './nimIndexer'
+
 
 export class NimReferenceProvider implements vscode.ReferenceProvider {
 
@@ -18,7 +20,7 @@ export class NimReferenceProvider implements vscode.ReferenceProvider {
           .then(result => {
             var references = [];
             result.forEach(item => {
-              references.push(new vscode.Location(vscode.Uri.file(item.path),
+              references.push(new vscode.Location(vscode.Uri.file(getNormalizedWorkspacePath(item.path)),
                 new vscode.Position(item.line - 1, item.column)));
             })
             resolve(references);

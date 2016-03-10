@@ -9,6 +9,7 @@ import { NIM_MODE } from './nimMode'
 import vscode = require('vscode');
 
 let statusBarEntry: vscode.StatusBarItem;
+let progressBarEntry: vscode.StatusBarItem;
 
 export function showHideStatus() {
   if (!statusBarEntry) {
@@ -29,6 +30,10 @@ export function hideNimStatus() {
   statusBarEntry.dispose();
 }
 
+export function hideNimProgress() {
+  progressBarEntry.dispose();
+}
+
 export function showNimStatus(message: string, command: string, tooltip?: string) {
   statusBarEntry = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, Number.MIN_VALUE);
   statusBarEntry.text = message;
@@ -36,4 +41,16 @@ export function showNimStatus(message: string, command: string, tooltip?: string
   statusBarEntry.color = 'yellow';
   statusBarEntry.tooltip = tooltip;
   statusBarEntry.show();
+}
+
+export function showNimProgress(message: string) {
+  progressBarEntry = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, Number.MIN_VALUE);
+  console.log(message);
+  progressBarEntry.text = message;
+  progressBarEntry.tooltip = message;
+  progressBarEntry.show();
+}
+
+export function updateNimProgress(message: string) {
+    progressBarEntry.text = message;
 }

@@ -11,6 +11,7 @@ import path = require('path');
 import os = require('os');
 import fs = require('fs');
 import { getNimExecPath, getProjectFile } from './nimUtils'
+import { getNormalizedWorkspacePath } from './nimIndexer';
 import { execNimSuggest, INimSuggestResult, NimSuggestType } from './nimSuggestExec'
 
 export interface ICheckResult {
@@ -52,14 +53,19 @@ function nimExec(command: string, args: string[], useStdErr: boolean, printToOut
 function parseErrors(lines: string[]): ICheckResult[] {
     var ret: ICheckResult[] = [];
     for (var i = 0; i < lines.length; i++) {
-        if (lines[i][0] == '\t' && ret.length > 0) {
-            ret[ret.length - 1].msg += "\n" + lines[i];
+        let line = lines[i].trim();
+        if (line.startsWith("Hint:") || line.endsWith("template/generic instantiation from here")) {
             continue;
         }
-        var match = /^([^(]*)?\((\d+)(,\s(\d+))?\) (\w+): (.*)/.exec(lines[i]);
-        if (!match) continue;
+        var match = /^([^(]*)?\((\d+)(,\s(\d+))?\) (\w+): (.*)/.exec(line);
+        if (!match) {
+            if (ret.length > 0) {
+                ret[ret.length - 1].msg += os.EOL + line;
+            }
+            continue;
+        }
         var [_, file, lineStr, _, charStr, severity, msg] = match;
-        ret.push({ file: file, line: parseInt(lineStr), column: parseInt(charStr), msg, severity });
+        ret.push({ file: getNormalizedWorkspacePath(file), line: parseInt(lineStr), column: parseInt(charStr), msg, severity });
     }
     return ret;
 }
@@ -74,8 +80,7 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
         runningToolsPromises.push(nimExec(nimConfig['buildCommand'] || "c", args, true, true, parseErrors));
     }
     if (!!nimConfig['lintOnSave']) {
-        let tmppath = path.normalize(path.join(os.tmpdir(), "nim-code-check"));
-        let args = ['--listFullPaths', '--out:', tmppath, getProjectFile(filename)];
+        let args = ['--listFullPaths', getProjectFile(filename)];
         runningToolsPromises.push(nimExec("check", args, true, false, parseErrors));
     }
 

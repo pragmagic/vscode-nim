@@ -15,7 +15,7 @@ import { showNimStatus } from './nimStatus'
 let pathesCache: { [tool: string]: string; } = {};
 var isNimSuggestInstalled = undefined;
 
-export function correctBinname(binname: string) {
+export function correctBinname(binname: string): string {
     if (process.platform === 'win32') {
         return binname + ".exe";
     } else {

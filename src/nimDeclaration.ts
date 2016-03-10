@@ -7,6 +7,7 @@
 
 import vscode = require('vscode');
 import { getDirtyFile } from './nimUtils'
+import { getNormalizedWorkspacePath } from './nimIndexer'
 import { execNimSuggest, INimSuggestResult, NimSuggestType } from './nimSuggestExec'
 
 
@@ -19,7 +20,7 @@ export class NimDefinitionProvider implements vscode.DefinitionProvider {
 
           if (result && result.length > 0) {
             let def = result.pop();
-            resolve(new vscode.Location(vscode.Uri.file(def.path), new vscode.Position(def.line - 1, def.column)));
+            resolve(new vscode.Location(vscode.Uri.file(getNormalizedWorkspacePath(def.path)), new vscode.Position(def.line - 1, def.column)));
           } else {
             resolve(null);
           }

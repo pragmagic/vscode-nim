@@ -13,6 +13,7 @@ import { NimCompletionItemProvider } from './nimSuggest';
 import { NimDefinitionProvider } from './nimDeclaration';
 import { NimReferenceProvider } from './nimReferences';
 import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutline';
+import * as indexer from './nimIndexer';
 import { NimSignatureHelpProvider } from './nimSignature';
 import { check, buildAndRun, ICheckResult } from './nimBuild';
 import { offerToInstallTools } from './nimInstallTools'
@@ -36,16 +37,15 @@ export function activate(ctx: vscode.ExtensionContext): void {
     vscode.workspace.onDidCloseTextDocument(closeDocumentHandler);
 
     console.log(ctx.extensionPath);
-    let workspaceSymbolProvider = new NimWorkspaceSymbolProvider(ctx.extensionPath);
+    indexer.initWorkspace(ctx.extensionPath);
     fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.nim");
-
     fileWatcher.onDidCreate((uri) => {
         let config = vscode.workspace.getConfiguration('nim');
         if (config.has('licenseString')) {
             let path = uri.fsPath.toLowerCase();
             if (path.endsWith('.nim') || path.endsWith('.nims')) {
                 fs.stat(uri.fsPath, (err, stats) => {
-                    if (stats.size === 0) {
+                    if (stats && stats.size === 0) {
                         var edit = new vscode.WorkspaceEdit();
                         edit.insert(uri, new vscode.Position(0, 0), config['licenseString']);
                         vscode.workspace.applyEdit(edit);
@@ -53,17 +53,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
                 });
             }
         }
-        workspaceSymbolProvider.fileChanged(uri);
+       indexer.addWorkspaceFile(uri.fsPath);
     });
 
-    fileWatcher.onDidChange((uri) => {
-        workspaceSymbolProvider.fileChanged(uri);
-    });
-
-    fileWatcher.onDidDelete((uri) => {
-        workspaceSymbolProvider.fileDeleted(uri);
-    });
-    ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(workspaceSymbolProvider));
+    fileWatcher.onDidChange(uri => indexer.changeWorkspaceFile(uri.fsPath));
+    fileWatcher.onDidDelete(uri => indexer.removeWorkspaceFile(uri.fsPath));
+    
+    ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(new NimWorkspaceSymbolProvider()));
 
     offerToInstallTools();
     startBuildOnSaveWatcher(ctx.subscriptions);
