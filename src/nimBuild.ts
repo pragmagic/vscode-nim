@@ -52,20 +52,37 @@ function nimExec(command: string, args: string[], useStdErr: boolean, printToOut
 
 function parseErrors(lines: string[]): ICheckResult[] {
     var ret: ICheckResult[] = [];
+    var templateError: boolean = false; 
+    var messageText = "";
+    var lastFile = {file: null, column: null, line: null};
     for (var i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
-        if (line.startsWith("Hint:") || line.endsWith("template/generic instantiation from here")) {
+        if (line.startsWith("Hint:")) {
             continue;
         }
-        var match = /^([^(]*)?\((\d+)(,\s(\d+))?\) (\w+): (.*)/.exec(line);
+        var match = /^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)/.exec(line);
         if (!match) {
-            if (ret.length > 0) {
-                ret[ret.length - 1].msg += os.EOL + line;
+            if (messageText.length < 1024) {
+                messageText += os.EOL + line;
             }
-            continue;
+        } else { 
+            var [_, file, lineStr, _, charStr, _, severity, msg] = match;
+            if (msg === "template/generic instantiation from here") {
+                let f = getNormalizedWorkspacePath(file);
+                if (f.startsWith(vscode.workspace.rootPath)) {
+                   lastFile = {file: f, column: charStr, line: lineStr};
+                }
+            } else {
+                let f = getNormalizedWorkspacePath(file);
+                if (f.startsWith(vscode.workspace.rootPath)) {
+                    ret.push({ file: getNormalizedWorkspacePath(file), line: parseInt(lineStr), column: parseInt(charStr), msg: msg + os.EOL + messageText, severity });
+                } else if (lastFile.file != null) {
+                    ret.push({ file: lastFile.file, line: parseInt(lastFile.line), column: parseInt(lastFile.column), msg: msg + os.EOL + messageText, severity });
+                }
+                messageText = "";
+                lastFile = {file: null, column: null, line: null};
+            }
         }
-        var [_, file, lineStr, _, charStr, severity, msg] = match;
-        ret.push({ file: getNormalizedWorkspacePath(file), line: parseInt(lineStr), column: parseInt(charStr), msg, severity });
     }
     return ret;
 }
@@ -82,6 +99,9 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
     if (!!nimConfig['lintOnSave']) {
         let args = ['--listFullPaths', getProjectFile(filename)];
         runningToolsPromises.push(nimExec("check", args, true, false, parseErrors));
+        if (!!nimConfig['test-project']) {
+            runningToolsPromises.push(nimExec("check", ['--listFullPaths', nimConfig['test-project']], true, false, parseErrors));
+        }
     }
 
     return Promise.all(runningToolsPromises).then(resultSets => [].concat.apply([], resultSets));

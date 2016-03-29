@@ -100,21 +100,24 @@ function runBuilds(document: vscode.TextDocument, nimConfig: vscode.WorkspaceCon
         diagnosticCollection.clear();
 
         let diagnosticMap: Map<vscode.Uri, vscode.Diagnostic[]> = new Map();
-
+        var err = {};
         errors.forEach(error => {
-            let targetUri = vscode.Uri.file(error.file);
-            let endColumn = error.column;
-            if (error.msg.indexOf("'") >= 0) {
-                endColumn += error.msg.lastIndexOf("'") - error.msg.indexOf("'") - 2;
+            if (!err[error.file + error.line + error.column + error.msg]) {
+                let targetUri = vscode.Uri.file(error.file);
+                let endColumn = error.column;
+                if (error.msg.indexOf("'") >= 0) {
+                    endColumn += error.msg.lastIndexOf("'") - error.msg.indexOf("'") - 2;
+                }
+                let range = new vscode.Range(error.line - 1, error.column - 1, error.line - 1, endColumn);
+                let diagnostic = new vscode.Diagnostic(range, error.msg, mapSeverityToVSCodeSeverity(error.severity));
+                let diagnostics = diagnosticMap.get(targetUri);
+                if (!diagnostics) {
+                    diagnostics = [];
+                }
+                diagnostics.push(diagnostic);
+                diagnosticMap.set(targetUri, diagnostics);
+                err[error.file + error.line + error.column + error.msg] = true
             }
-            let range = new vscode.Range(error.line - 1, error.column - 1, error.line - 1, endColumn);
-            let diagnostic = new vscode.Diagnostic(range, error.msg, mapSeverityToVSCodeSeverity(error.severity));
-            let diagnostics = diagnosticMap.get(targetUri);
-            if (!diagnostics) {
-                diagnostics = [];
-            }
-            diagnostics.push(diagnostic);
-            diagnosticMap.set(targetUri, diagnostics);
         });
         let entries: [vscode.Uri, vscode.Diagnostic[]][] = [];
         diagnosticMap.forEach((diags, uri) => {

@@ -36,6 +36,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
     "nim.buildCommand": "c",
 	"nim.lintOnSave": true,
 	"nim.project": "project.nim",
+	"nim.test-project": "tests.nim",
     "nim.licenseString": "# Copyright 2016.\n\n"
 }
 ```
@@ -56,6 +57,10 @@ In addition to integrated editing features, the extension also provides several 
 * Debug support 
 
 ## History
+
+### 0.4.10
+* Added test project support
+* Improved nim check error parsing for macros and templates
 
 ### 0.4.9
 * Improved database indexes
