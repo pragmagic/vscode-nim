@@ -2,7 +2,7 @@
     "name": "nim",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code",
-    "version": "0.4.10",
+    "version": "0.4.11",
     "publisher": "kosz78",
     "author": {
         "name": "Xored Software Inc."
@@ -55,14 +55,8 @@
             {
                 "id": "nim",
                 "aliases": ["Nim", "nim"],
-                "extensions": [".nim", ".nims"],
+                "extensions": [".nim", ".nims", "nim.cfg", ".nim.cfg"],
                 "configuration": "./nim.configuration.json"
-            },
-            {
-                "id": "nimcfg",
-                "aliases": ["Nim Config", "nimcfg"],
-                "extensions": [".cfg"],
-                "configuration": "./nimcfg.configuration.json"
             },
             {
                 "id": "nimble",
@@ -76,11 +70,6 @@
                 "language": "nim",
                 "scopeName": "source.nim",
                 "path": "./syntaxes/Nim.tmLanguage"
-            },
-            {
-                "language": "nimcfg",
-                "scopeName": "source.nimcfg",
-                "path": "./syntaxes/Nim_Cfg.tmLanguage"
             },
             {
                 "language": "nimble",

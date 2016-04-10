@@ -13,7 +13,7 @@ import fs = require('fs');
 import net = require('net');
 import {getNimSuggestExecPath} from './nimUtils';
 
-let nimSuggestProcessCache: { [project: string]: { process: cp.ChildProcess, portNumber: number }; } = {};
+let nimSuggestProcessCache: { [project: string]: { process: cp.ChildProcess, portNumber: number, failCounter: number }; } = {};
 
 // TODO make get free port instead hardcode
 var portCounter: number = 6001;
@@ -108,7 +108,13 @@ export function execNimSuggest(suggestType: NimSuggestType, filename: string,
 
         socket.on("error", err => {
             if (err.code === "ECONNREFUSED") {
-                closeNimSuggestProcess(filename);
+                if (!!nimSuggestProcessCache[file]) {
+                    nimSuggestProcessCache[file].failCounter++;
+                    if (nimSuggestProcessCache[file].failCounter > 5) {
+                        closeNimSuggestProcess(filename);
+                    }
+                }
+
                 resolved = true;
                 resolve([]);
             }
@@ -189,7 +195,7 @@ function initNimSuggestProcess(nimProject: string): void {
     process.on('close', () => {
         nimSuggestProcessCache[nimProject] = null;
     });
-    nimSuggestProcessCache[nimProject] = { process: process, portNumber: portNumber };
+    nimSuggestProcessCache[nimProject] = { process: process, portNumber: portNumber, failCounter: 0 };
 }
 
 function getWorkingFile(filename: string) {
