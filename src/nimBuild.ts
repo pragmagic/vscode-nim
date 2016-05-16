@@ -12,7 +12,6 @@ import os = require('os');
 import fs = require('fs');
 import { getNimExecPath, getProjectFile } from './nimUtils'
 import { getNormalizedWorkspacePath } from './nimIndexer';
-import { execNimSuggest, INimSuggestResult, NimSuggestType } from './nimSuggestExec'
 
 export interface ICheckResult {
     file: string;
@@ -40,7 +39,7 @@ function nimExec(command: string, args: string[], useStdErr: boolean, printToOut
                     var outputWindow = vscode.window.createOutputChannel("Nim Output");
                     outputWindow.append(stderr.toString());
                     outputWindow.append(stdout.toString());
-                    outputWindow.show(2);
+                    outputWindow.show();
                 }
                 resolve(ret);
             } catch (e) {
@@ -120,6 +119,6 @@ export function buildAndRun(filename: string): void {
         outputWindow.append(stderr.toString());
         outputWindow.append(stdout.toString());
         // display window in the second position (side or bottom)
-        outputWindow.show(2);
+        outputWindow.show();
     });
 }

@@ -7,7 +7,7 @@
 
 import vscode = require('vscode');
 import { getDirtyFile } from './nimUtils'
-import { execNimSuggest, NimSuggestType, INimSuggestResult } from './nimSuggestExec'
+import { execNimSuggest, NimSuggestType, NimSuggestResult } from './nimSuggestExec'
 
 export class NimCompletionItemProvider implements vscode.CompletionItemProvider {
   public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.CompletionItem[]> {
@@ -20,10 +20,9 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
 
           item.forEach(item => {
             if (item.answerType === "sug") {
-              var localSymName = item.name.indexOf('.') > 0 ? item.name.substr(item.name.lastIndexOf('.') + 1) : item.name;
-              var suggestion = new vscode.CompletionItem(localSymName);
+              var suggestion = new vscode.CompletionItem(item.symbolName);
               suggestion.kind = vscodeKindFromNimSym(item.suggest);
-              suggestion.detail = nimSymDetails(item.suggest, item.name, item.type);
+              suggestion.detail = nimSymDetails(item);
               suggestion.documentation = item.documentation;
               suggestions.push(suggestion);
             }
@@ -37,7 +36,7 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
 function vscodeKindFromNimSym(kind: string): vscode.CompletionItemKind {
   switch (kind) {
     case "skConst":
-      return vscode.CompletionItemKind.Reference;
+      return vscode.CompletionItemKind.Value;
     case "skEnumField":
       return vscode.CompletionItemKind.Enum;
     case "skForVar":
@@ -47,57 +46,57 @@ function vscodeKindFromNimSym(kind: string): vscode.CompletionItemKind {
     case "skLabel":
       return vscode.CompletionItemKind.Keyword;
     case "skLet":
-      return vscode.CompletionItemKind.Field;
+      return vscode.CompletionItemKind.Value;
     case "skMacro":
-      return vscode.CompletionItemKind.Field;
+      return vscode.CompletionItemKind.Snippet;
     case "skMethod":
       return vscode.CompletionItemKind.Method;
     case "skParam":
       return vscode.CompletionItemKind.Variable;
     case "skProc":
-      return vscode.CompletionItemKind.Method;
+      return vscode.CompletionItemKind.Function;
     case "skResult":
-      return vscode.CompletionItemKind.Variable;
+      return vscode.CompletionItemKind.Value;
     case "skTemplate":
-      return vscode.CompletionItemKind.Keyword;
+      return vscode.CompletionItemKind.Snippet;
     case "skType":
-      return vscode.CompletionItemKind.Reference;
+      return vscode.CompletionItemKind.Class;
     case "skVar":
       return vscode.CompletionItemKind.Field;
   }
   return vscode.CompletionItemKind.Property;
 }
 
-function nimSymDetails(kind: string, name: string, type: string): string {
-  switch (kind) {
+function nimSymDetails(suggest: NimSuggestResult): string {
+  switch (suggest.suggest) {
     case "skConst":
-      return "const " + name + ":" + type;
+      return "const " + suggest.fullName + ": " + suggest.type;
     case "skEnumField":
-      return "enum " + type;
+      return "enum " + suggest.type;
     case "skForVar":
-      return "for var";
+      return "for var of " + suggest.type;
     case "skIterator":
-      return "iterator";
+      return suggest.type;
     case "skLabel":
       return "label";
     case "skLet":
-      return "let";
+      return "let of " + suggest.type;
     case "skMacro":
       return "macro";
     case "skMethod":
-      return "method";
+      return suggest.type;
     case "skParam":
       return "param";
     case "skProc":
-      return type;
+      return suggest.type;
     case "skResult":
       return "result";
     case "skTemplate":
-      return "template";
+      return suggest.type;
     case "skType":
-      return "type " + name;
+      return "type " + suggest.fullName;
     case "skVar":
-      return "var";
+      return "var of " + suggest.type;
   }
-  return type;
+  return suggest.type;
 }

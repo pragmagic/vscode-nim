@@ -11,12 +11,16 @@ import path = require('path');
 import os = require('os');
 import fs = require('fs');
 import net = require('net');
-import {getNimSuggestExecPath} from './nimUtils';
+import elrpc = require('elrpc');
+import {getNimSuggestPath} from './nimUtils';
+import {getNormalizedWorkspacePath} from './nimIndexer';
 
-let nimSuggestProcessCache: { [project: string]: { process: cp.ChildProcess, portNumber: number, failCounter: number }; } = {};
+class NimSuggestProcessDescription {
+    process: cp.ChildProcess;
+    rpc: elrpc.RPCServer;
+}
 
-// TODO make get free port instead hardcode
-var portCounter: number = 6001;
+let nimSuggestProcessCache: { [project: string]: NimSuggestProcessDescription } = {};
 
 export enum NimSuggestType {
     /** Suggest from position */
@@ -39,7 +43,7 @@ export enum NimSuggestType {
 /**
  * Parsed string line from nimsuggest utility.
  */
-export interface INimSuggestResult {
+export class NimSuggestResult {
 
     /** Three characters indicating the type of returned answer 
      * (e.g. def for definition, sug for suggestion, etc). */
@@ -50,8 +54,8 @@ export interface INimSuggestResult {
     suggest: string;
 
     /** Full qualitifed path of the symbol.If you are querying a symbol 
-     * defined in the proj.nim file, this would have the form proj.symbolName. */
-    name: string;
+     * defined in the proj.nim file, this would have the form [proj, symbolName]. */
+    names: string[];
 
     /** Type / signature.For variables and enums this will contain the type 
      * of the symbol, for procs, methods and templates this will contain the 
@@ -77,97 +81,77 @@ export interface INimSuggestResult {
      * Instead you will need to parse sequences in the form \xHH, where HH 
      * is a hexadecimal value (e.g. newlines generate the sequence \x0A). */
     documentation: string;
+    
+    get range(): vscode.Range {
+        return new vscode.Range(this.line - 1, this.column, this.line - 1, this.column)
+    }
+
+    get position(): vscode.Position {
+        return new vscode.Position(this.line - 1, this.column);
+    }
+
+    get uri(): vscode.Uri {
+        return vscode.Uri.file(getNormalizedWorkspacePath(this.path))
+    }
+
+    get location(): vscode.Location {
+        return new vscode.Location(this.uri, this.position);
+    }
+
+    get fullName(): string {
+        return this.names ? this.names.join('.') : '';
+    }
+
+    get symbolName(): string {
+        return this.names ? this.names[this.names.length - 1] : '';
+    }
+
+    get container(): string {
+        return this.names ? this.names[0] : '';
+    }
 }
 
-export function execNimSuggest(suggestType: NimSuggestType, filename: string,
-    line: number, column: number, dirtyFile?: string, onClose?: () => void): Promise<INimSuggestResult[]> {
-    return new Promise<INimSuggestResult[]>((resolve, reject) => {
-        var nimSuggestExec = getNimSuggestExecPath();
-        // if nimsuggest not found just ignore
-        if (!nimSuggestExec) {
-            return resolve([]);
-        }
-        var file = getWorkingFile(filename);
+export async function execNimSuggest(suggestType: NimSuggestType, filename: string,
+    line: number, column: number, dirtyFile?: string, onClose?: () => void): Promise<NimSuggestResult[]> {
+    var nimSuggestExec = getNimSuggestPath();
+    // if nimsuggest not found just ignore
+    if (!nimSuggestExec) {
+        return [];
+    }
+    var file = getWorkingFile(filename);
 
-        if (!nimSuggestProcessCache[file]) {
-            initNimSuggestProcess(file);
-        }
-
-        let cmd = NimSuggestType[suggestType] + ' "' + filename + '"' + (dirtyFile ? (';"' + dirtyFile + '"') : "") + ":" + line + ":" + column + "\n";
-        var processDesc = nimSuggestProcessCache[file];
-        var str = "";
-        var resolved = false;
-
-        var socket = net.createConnection(processDesc.portNumber, () => {
-            socket.end(cmd);
-        });
-
-        socket.on("data", data => {
-            str += data.toString();
-        });
-
-        socket.on("error", err => {
-            if (err.code === "ECONNREFUSED") {
-                if (!!nimSuggestProcessCache[file]) {
-                    nimSuggestProcessCache[file].failCounter++;
-                    if (nimSuggestProcessCache[file].failCounter > 5) {
-                        closeNimSuggestProcess(filename);
-                    }
-                }
-
-                resolved = true;
-                resolve([]);
-            }
-        });
-
-        socket.on("end", () => {
-            resolved = true;
-            var lines = str.toString().split(os.EOL);
-            // TODO parse result by suggesttype prefix
-            var result: INimSuggestResult[] = [];
-            for (var i = 0; i < lines.length; i++) {
-                var parts = lines[i].split('\t');
+    try {
+        let desc = await getNimSuggestProcess(file);
+        
+        let ret = await desc.rpc.callMethod(NimSuggestType[suggestType], filename.replace(/\\+/g, '/'), line, column, dirtyFile);
+       
+        var result: NimSuggestResult[] = [];
+        if (ret != null) {
+            for (var i = 0; i < ret.length; i++) {
+                var parts = ret[i];
                 if (parts.length >= 8) {
-                    result.push({
-                        answerType: parts[0],
-                        suggest: parts[1],
-                        name: parts[2],
-                        type: parts[3],
-                        path: parts[4],
-                        line: parseInt(parts[5]),
-                        column: parseInt(parts[6]),
-                        documentation: parts[7] != '""' ? parts[7] : ""
-                    });
+                    var item = new NimSuggestResult();
+                    item.answerType = parts[0];
+                    item.suggest = parts[1];
+                    item.names = parts[2];
+                    item.path = parts[3].replace(/\\,\\/g, '\\');
+                    item.type = parts[4];
+                    item.line = parts[5];
+                    item.column = parts[6];
+                    item.documentation = parts[7];
+                    result.push(item);
                 }
             }
-            socket.destroy();
-            if (!isProjectMode() && vscode.window.visibleTextEditors.every(
-                    (value, index, array) => { return value.document.uri.fsPath !== filename; })
-            ) {
-                closeNimSuggestProcess(filename);
-            }
-            resolve(result);
-        });
-
-        socket.on("close", () => {
-            if (onClose) {
-                onClose();
-            }
-        });
-
-        // set 1 sec timeout
-        setTimeout(function() {
-            if (!resolve) {
-                console.log("Nimsuggest timeout:");
-                console.log("- process args: " + (<any>process).spawnargs);
-                console.log("- process dir: " + (<any>process).cwd);
-                console.log("- command: " + cmd);
-                console.log("- output: " + str);
-                socket.destroy();
-                resolve([]);
-            }
-        }, 2000);
-    });
+        }
+        if (!isProjectMode() && vscode.window.visibleTextEditors.every(
+            (value, index, array) => { return value.document.uri.fsPath !== filename; })) {
+            await closeNimSuggestProcess(filename);
+        }
+        return result;
+    } catch (e) {
+        console.error(e);
+        closeNimSuggestProcess(filename);
+    }
 }
 
 export function closeAllNimSuggestProcesses(): void {
@@ -177,25 +161,41 @@ export function closeAllNimSuggestProcesses(): void {
     nimSuggestProcessCache = {};
 }
 
-export function closeNimSuggestProcess(filename: string): void {
+export async function closeNimSuggestProcess(filename: string): Promise<void> {
     var file = getWorkingFile(filename);
     if (nimSuggestProcessCache[file]) {
-        nimSuggestProcessCache[file].process.kill();
+        let desc = nimSuggestProcessCache[file];
         nimSuggestProcessCache[file] = null;
+        await desc.rpc.stop();
+        desc.process.kill();
     }
 }
 
-function initNimSuggestProcess(nimProject: string): void {
-    let portNumber = ++portCounter;
-    let process = cp.spawn(getNimSuggestExecPath(), ['--address:127.0.0.1', '--port:' + portNumber, '--v2', nimProject], { cwd: vscode.workspace.rootPath });
-    process.stderr.on("data", (data) => {
-        //        console.log("error");
-        //        console.log(data.toString());
+async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProcessDescription> {
+    return new Promise<NimSuggestProcessDescription>((resolve, reject) => {
+        if (!!nimSuggestProcessCache[nimProject]) {
+            resolve(nimSuggestProcessCache[nimProject]);
+            return;
+        }
+
+        let process = cp.spawn(getNimSuggestPath(), ['--epc', '--v2', nimProject], { cwd: vscode.workspace.rootPath });
+        process.stdout.once("data", (data) => {
+            elrpc.startClient(parseInt(data.toString())).then((client) => {
+                nimSuggestProcessCache[nimProject] = { process: process, rpc: client };
+                client.socket.on("error", err => {
+                    closeNimSuggestProcess(nimProject);
+                });
+                resolve(nimSuggestProcessCache[nimProject]);
+            });
+        });
+        process.on('close', () => {
+            if (nimSuggestProcessCache[nimProject] && nimSuggestProcessCache[nimProject].rpc) {
+                nimSuggestProcessCache[nimProject].rpc.stop();
+            }
+            nimSuggestProcessCache[nimProject] = null;
+            reject();
+        });
     });
-    process.on('close', () => {
-        nimSuggestProcessCache[nimProject] = null;
-    });
-    nimSuggestProcessCache[nimProject] = { process: process, portNumber: portNumber, failCounter: 0 };
 }
 
 function getWorkingFile(filename: string) {

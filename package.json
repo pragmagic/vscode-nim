@@ -2,19 +2,20 @@
     "name": "nim",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code",
-    "version": "0.4.11",
+    "version": "0.5.0",
     "publisher": "kosz78",
     "author": {
         "name": "Xored Software Inc."
     },
     "license": "MIT",
     "icon": "images/nim_icon.png",
+    "homepage": "https://github.com/pragmagic/vscode-nim/blob/master/README.md",
     "categories": [
         "Languages",
         "Linters"
     ],
     "galleryBanner": {
-        "color": "#152534",
+        "color": "#2C2A35",
         "theme": "dark"
     },
     "repository": {
@@ -26,20 +27,19 @@
 	},
     "scripts": {
         "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-        "compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+        "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
-        "vscode-languageclient": "0.10.x",
-		"vscode-debugprotocol": "^1.6.1",
-		"vscode-debugadapter": "^1.6.1",
-        "nedb": "1.6.0"
+        "nedb": "1.8.0",
+        "elrpc": "0.1.0"
     },
     "devDependencies": {
-        "typescript": "^1.8.0",
-        "vscode": "0.10.x"
+        "typescript": "^1.8.10",
+        "vscode": "^0.11.x"
     },
     "engines": {
-        "vscode": "^0.10.8"
+        "vscode": "^1.0.0" 
     },
     "activationEvents": [
         "onLanguage:nim",

@@ -7,7 +7,7 @@
 
 import vscode = require('vscode');
 import { getDirtyFile } from './nimUtils'
-import { execNimSuggest, INimSuggestResult, NimSuggestType } from './nimSuggestExec'
+import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec'
 
 export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
 

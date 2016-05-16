@@ -12,7 +12,6 @@ This extension adds language support for the Nim language to VS Code, including:
 - Build-on-save
 - Workspace symbol search
 
-
 ## Using
 
 First, you will need to install Visual Studio Code `0.10`. 
@@ -20,9 +19,6 @@ In the command palette (`cmd-shift-p`) select `Install Extension` and choose `Ni
 
 The following tools are required for the extension:
 * Nim compiler - http://nim-lang.org
-* Nim package manager - https://github.com/nim-lang/nimble
-* Nimsuggest - https://github.com/nim-lang/nimsuggest (can be installed later from the extension, You should see `Nimsuggest Tools Missing` in the bottom right, 
-clicking this will offer to install `Nimsuggest` tool for the extension to support it's full feature set).
 
 _Note_: It is recommended to turn `Auto Save` on in Visual Studio Code (`File -> Auto Save`) when using this extension.  
 
@@ -57,6 +53,11 @@ In addition to integrated editing features, the extension also provides several 
 * Debug support 
 
 ## History
+
+### 0.5
+* Refactored nimsuggest interaction to use EPC mode, removed nimble requirements
+* Added info with qualified name for hovered element
+* Improved suggest information
 
 ### 0.4.10
 * Added test project support

@@ -8,19 +8,18 @@
 import vscode = require('vscode');
 import { getDirtyFile } from './nimUtils'
 import { getNormalizedWorkspacePath } from './nimIndexer'
-import { execNimSuggest, NimSuggestResult, NimSuggestType} from './nimSuggestExec'
+import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec'
 
 
-export class NimDefinitionProvider implements vscode.DefinitionProvider {
+export class NimHoverProvider implements vscode.HoverProvider {
 
-  public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.Location> {
-    return new Promise<vscode.Location>((resolve, reject) => {
+  public provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.Hover> {
+    return new Promise<vscode.Hover>((resolve, reject) => {
       execNimSuggest(NimSuggestType.def, document.fileName, position.line + 1, position.character,
         getDirtyFile(document)).then(result => {
-
           if (result && result.length > 0) {
             let def = result.pop();
-            resolve(def.location);
+            resolve(new vscode.Hover(def.fullName, def.range));
           } else {
             resolve(null);
           }

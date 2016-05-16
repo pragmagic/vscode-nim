@@ -12,29 +12,30 @@ import { closeAllNimSuggestProcesses, closeNimSuggestProcess } from './nimSugges
 import { NimCompletionItemProvider } from './nimSuggest';
 import { NimDefinitionProvider } from './nimDeclaration';
 import { NimReferenceProvider } from './nimReferences';
+import { NimHoverProvider } from './nimHover';
 import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutline';
 import * as indexer from './nimIndexer';
 import { NimSignatureHelpProvider } from './nimSignature';
 import { check, buildAndRun, ICheckResult } from './nimBuild';
-import { offerToInstallTools } from './nimInstallTools'
 import { NIM_MODE } from './nimMode'
 import { showHideStatus } from './nimStatus'
+import { initNimSuggest } from './nimUtils'
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
  
 export function activate(ctx: vscode.ExtensionContext): void {
-    ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.'));
+    initNimSuggest(ctx);
+    ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
     ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
     ctx.subscriptions.push(vscode.languages.registerReferenceProvider(NIM_MODE, new NimReferenceProvider()));
     ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(NIM_MODE, new NimDocumentSymbolProvider()));
     ctx.subscriptions.push(vscode.languages.registerSignatureHelpProvider(NIM_MODE, new NimSignatureHelpProvider(), '(', ','));
-
+    ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
     diagnosticCollection = vscode.languages.createDiagnosticCollection('nim');
     ctx.subscriptions.push(diagnosticCollection);
 
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
-    vscode.workspace.onDidCloseTextDocument(closeDocumentHandler);
 
     console.log(ctx.extensionPath);
     indexer.initWorkspace(ctx.extensionPath);
@@ -61,7 +62,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
     
     ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(new NimWorkspaceSymbolProvider()));
 
-    offerToInstallTools();
     startBuildOnSaveWatcher(ctx.subscriptions);
 
     ctx.subscriptions.push(vscode.commands.registerCommand('nim.run', () => {
@@ -99,11 +99,11 @@ function runBuilds(document: vscode.TextDocument, nimConfig: vscode.WorkspaceCon
     check(uri.fsPath, nimConfig).then(errors => {
         diagnosticCollection.clear();
 
-        let diagnosticMap: Map<vscode.Uri, vscode.Diagnostic[]> = new Map();
+        let diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
         var err = {};
         errors.forEach(error => {
             if (!err[error.file + error.line + error.column + error.msg]) {
-                let targetUri = vscode.Uri.file(error.file);
+                let targetUri = error.file;
                 let endColumn = error.column;
                 if (error.msg.indexOf("'") >= 0) {
                     endColumn += error.msg.lastIndexOf("'") - error.msg.indexOf("'") - 2;
@@ -114,16 +114,17 @@ function runBuilds(document: vscode.TextDocument, nimConfig: vscode.WorkspaceCon
                 if (!diagnostics) {
                     diagnostics = [];
                 }
-                diagnostics.push(diagnostic);
                 diagnosticMap.set(targetUri, diagnostics);
+                diagnostics.push(diagnostic);
                 err[error.file + error.line + error.column + error.msg] = true
             }
         });
+        
         let entries: [vscode.Uri, vscode.Diagnostic[]][] = [];
-        diagnosticMap.forEach((diags, uri) => {
-            entries.push([uri, diags]);
-        });
-        diagnosticCollection.set(entries);
+		diagnosticMap.forEach((diags, uri) => {
+            entries.push([vscode.Uri.file(uri), diags]);
+		});
+		diagnosticCollection.set(entries);
     }).catch(err => {
         vscode.window.showInformationMessage("Error: " + err);
     });
@@ -137,11 +138,4 @@ function startBuildOnSaveWatcher(subscriptions: vscode.Disposable[]) {
         let nimConfig = vscode.workspace.getConfiguration('nim');
         runBuilds(document, nimConfig);
     }, null, subscriptions);
-}
-
-function closeDocumentHandler(document: vscode.TextDocument): void {
-    let config = vscode.workspace.getConfiguration('nim');
-    if (!config['project']) {
-        closeNimSuggestProcess(document.fileName);
-    }
 }
