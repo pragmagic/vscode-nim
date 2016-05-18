@@ -54,6 +54,9 @@ In addition to integrated editing features, the extension also provides several 
 
 ## History
 
+### 0.5.1
+* Fixed #12 - Cannot compile nimsuggest 
+
 ### 0.5
 * Refactored nimsuggest interaction to use EPC mode, removed nimble requirements
 * Added info with qualified name for hovered element
