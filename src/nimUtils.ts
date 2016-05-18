@@ -78,6 +78,17 @@ function getBinPath(tool: string): string {
     if (process.env["PATH"]) {
         var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
         _pathesCache[tool] = pathparts.map(dir => path.join(dir, correctBinname(tool))).filter(candidate => fs.existsSync(candidate))[0];
+        if (process.platform === 'darwin') {
+            let buff = cp.execFileSync("readlink", [_pathesCache[tool]])
+            if (buff.length > 0) {
+                _pathesCache[tool] = buff.toString().trim()
+            } 
+        } else if (process.platform === 'linux') {
+            let buff = cp.execFileSync("readlink", ['-f', _pathesCache[tool]])
+            if (buff.length > 0) {
+                _pathesCache[tool] = buff.toString().trim()
+            } 
+        }
     }
     return _pathesCache[tool];
 }
