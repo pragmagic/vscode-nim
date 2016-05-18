@@ -32,7 +32,11 @@ export function initNimSuggest(ctx: vscode.ExtensionContext) {
     if (fs.existsSync(execFile) && ctx.globalState.get('nimExecTimestamp', 0) == nimExecTimestamp) {
         _nimSuggestPath = execFile; 
     } else {
-        let cmd = '"' + getNimExecPath()  + '" c -d:release --noNimblePath --path:"' + path.dirname(path.dirname(getNimExecPath())) + '" nimsuggest.nim';
+        let nimCacheDir = path.resolve(nimSuggestDir, "nimcache");
+        if (fs.existsSync(nimCacheDir)) {
+            removeDirSync(nimCacheDir);
+        }
+        let cmd = '"' + getNimExecPath()  + '" c -d:release --path:"' + path.dirname(path.dirname(getNimExecPath())) + '" nimsuggest.nim';
         showNimStatus('Compiling nimsuggest', '');
         cp.exec(cmd, { cwd: nimSuggestDir }, (error, stdout, stderr) => {
             hideNimStatus();
@@ -78,13 +82,9 @@ function getBinPath(tool: string): string {
     if (process.env["PATH"]) {
         var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
         _pathesCache[tool] = pathparts.map(dir => path.join(dir, correctBinname(tool))).filter(candidate => fs.existsSync(candidate))[0];
-        if (process.platform === 'darwin') {
-            let buff = cp.execFileSync("readlink", [_pathesCache[tool]])
-            if (buff.length > 0) {
-                _pathesCache[tool] = buff.toString().trim()
-            } 
-        } else if (process.platform === 'linux') {
-            let buff = cp.execFileSync("readlink", ['-f', _pathesCache[tool]])
+        if (process.platform !== 'win32') {
+            let args = process.platform === 'linux' ? ['-f', _pathesCache[tool]] : [_pathesCache[tool]] 
+            let buff = cp.execFileSync("readlink", args)
             if (buff.length > 0) {
                 _pathesCache[tool] = buff.toString().trim()
             } 
@@ -100,3 +100,17 @@ function correctBinname(binname: string): string {
         return binname;
     }
 }
+
+function removeDirSync(p: string): void {
+    if (fs.existsSync(p)) {
+        fs.readdirSync(p).forEach((file, index) => {
+            var curPath = path.resolve(p, file);
+            if (fs.lstatSync(curPath).isDirectory()) {
+                removeDirSync(curPath);
+            } else {
+                fs.unlinkSync(curPath);
+            }
+        });
+        fs.rmdirSync(p);
+    }
+};
