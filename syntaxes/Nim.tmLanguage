@@ -74,7 +74,7 @@
 					<key>end</key>
 					<string>\]#</string>
 					<key>name</key>
-                    <string>comment.block.nim</string> 
+                    <string>comment.block.nim</string>
 				</dict>
 			</array>
 		</dict>
@@ -407,7 +407,7 @@
 					<key>contentName</key>
 					<string>source.c</string>
 					<key>end</key>
-					<string>(")""(?!")(\.\})?</string>
+					<string>(")""(?!")(\.{0,1}\})?</string>
 					<key>endCaptures</key>
 					<dict>
 						<key>0</key>
@@ -445,7 +445,7 @@
 			<key>begin</key>
 			<string>\{\.</string>
 			<key>end</key>
-			<string>\.\}</string>
+			<string>\.{0,1}\}</string>
 			<key>name</key>
 			<string>meta.preprocessor.nim</string>
 			<key>patterns</key>
