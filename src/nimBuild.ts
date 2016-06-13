@@ -10,7 +10,7 @@ import cp = require('child_process');
 import path = require('path');
 import os = require('os');
 import fs = require('fs');
-import { getNimExecPath, getProjectFile } from './nimUtils'
+import { getNimExecPath, getProjectFile, getProjects, isProjectMode } from './nimUtils'
 import { getNormalizedWorkspacePath } from './nimIndexer';
 
 export interface ICheckResult {
@@ -86,39 +86,24 @@ function parseErrors(lines: string[]): ICheckResult[] {
     return ret;
 }
 
-export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration): Promise<ICheckResult[]> {
+export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration, forceBuild?: boolean): Promise<ICheckResult[]> {
     var runningToolsPromises = [];
     var cwd = path.dirname(filename);
 
-    if (!!nimConfig['buildOnSave']) {
+    if (!!nimConfig['buildOnSave'] || forceBuild) {
         let projectFile = getProjectFile(filename);
         let args = ['--listFullPaths', projectFile]; 
         runningToolsPromises.push(nimExec(nimConfig['buildCommand'] || "c", args, true, true, parseErrors));
     }
     if (!!nimConfig['lintOnSave']) {
-        let args = ['--listFullPaths', getProjectFile(filename)];
-        runningToolsPromises.push(nimExec("check", args, true, false, parseErrors));
-        if (!!nimConfig['test-project']) {
-            runningToolsPromises.push(nimExec("check", ['--listFullPaths', nimConfig['test-project']], true, false, parseErrors));
+        if (!isProjectMode()) {
+            runningToolsPromises.push(nimExec("check", ['--listFullPaths', getProjectFile(filename)], true, false, parseErrors));
+        } else {
+            getProjects().forEach(project => {
+                runningToolsPromises.push(nimExec("check", ['--listFullPaths', project], true, false, parseErrors));
+            });
         }
     }
 
     return Promise.all(runningToolsPromises).then(resultSets => [].concat.apply([], resultSets));
-}
-
-export function buildAndRun(filename: string): void {
-    let config = vscode.workspace.getConfiguration('nim');
-    var args = ['compile', '-r', '--listFullPaths', filename];
-    var cwd = vscode.workspace.rootPath;
-    cp.execFile(getNimExecPath(), args, { cwd: cwd }, (err, stdout, stderr) => {
-        if (err && (<any>err).code == "ENOENT") {
-            vscode.window.showInformationMessage("No 'nim' binary could be found in PATH: '" + process.env["PATH"] + "'");
-            return;
-        }
-        var outputWindow = vscode.window.createOutputChannel("Nim Run Output");
-        outputWindow.append(stderr.toString());
-        outputWindow.append(stdout.toString());
-        // display window in the second position (side or bottom)
-        outputWindow.show();
-    });
 }

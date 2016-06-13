@@ -12,13 +12,15 @@ import os = require('os');
 import fs = require('fs');
 import net = require('net');
 import elrpc = require('elrpc');
-import {getNimSuggestPath} from './nimUtils';
+import {getNimSuggestPath, getProjectFile, isProjectMode} from './nimUtils';
 import {getNormalizedWorkspacePath} from './nimIndexer';
 
 class NimSuggestProcessDescription {
     process: cp.ChildProcess;
     rpc: elrpc.RPCServer;
 }
+
+let NIM_SUGGEST_RESPONSE_TIMEOUT = 5000;
 
 let nimSuggestProcessCache: { [project: string]: NimSuggestProcessDescription } = {};
 
@@ -118,13 +120,18 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
     if (!nimSuggestExec) {
         return [];
     }
-    var file = getWorkingFile(filename);
-
     try {
-        let desc = await getNimSuggestProcess(file);
-        
+        let desc = await getNimSuggestProcess(getProjectFile(filename));
+
+        var responseReceived = false;
+        setTimeout(() => {
+            if (!responseReceived) {
+                closeNimSuggestProcess(filename);
+            }
+        }, NIM_SUGGEST_RESPONSE_TIMEOUT);
         let ret = await desc.rpc.callMethod(NimSuggestType[suggestType], filename.replace(/\\+/g, '/'), line, column, dirtyFile);
-       
+        responseReceived = true;
+
         var result: NimSuggestResult[] = [];
         if (ret != null) {
             for (var i = 0; i < ret.length; i++) {
@@ -162,7 +169,7 @@ export function closeAllNimSuggestProcesses(): void {
 }
 
 export async function closeNimSuggestProcess(filename: string): Promise<void> {
-    var file = getWorkingFile(filename);
+    var file = getProjectFile(filename);
     if (nimSuggestProcessCache[file]) {
         let desc = nimSuggestProcessCache[file];
         nimSuggestProcessCache[file] = null;
@@ -196,22 +203,4 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
             reject();
         });
     });
-}
-
-function getWorkingFile(filename: string) {
-    var config = vscode.workspace.getConfiguration('nim');
-
-    var cwd = vscode.workspace.rootPath;
-    if (!path.isAbsolute(filename)) {
-        filename = vscode.workspace.asRelativePath(filename);
-        if (filename.startsWith(path.sep)) {
-            filename = filename.slice(1);
-        }
-    }
-    return config["project"] || filename;
-}
-
-function isProjectMode(): boolean {
-    var config = vscode.workspace.getConfiguration('nim');
-    return !!config["project"];
 }

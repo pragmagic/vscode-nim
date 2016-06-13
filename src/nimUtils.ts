@@ -14,6 +14,7 @@ import { showNimStatus, hideNimStatus } from './nimStatus'
 
 let _pathesCache: { [tool: string]: string; } = {};
 var _nimSuggestPath: string = undefined;
+var _projects: string[] = []; 
 
 export function getNimExecPath(): string {
     let path = getBinPath('nim');
@@ -24,12 +25,17 @@ export function getNimExecPath(): string {
 }
 
 export function initNimSuggest(ctx: vscode.ExtensionContext) {
+    prepareConfig();
+    vscode.workspace.onDidChangeConfiguration(prepareConfig);
     let extensionPath = ctx.extensionPath
     var nimSuggestDir = path.resolve(extensionPath, "nimsuggest");
+    var nimSuggestSourceFile = path.resolve(nimSuggestDir, "nimsuggest.nim");
     var execFile = path.resolve(nimSuggestDir, correctBinname("nimsuggest"));
     var nimExecTimestamp = fs.statSync(getNimExecPath()).mtime.getTime()
+    var nimSuggestTimestamp = fs.statSync(nimSuggestSourceFile).mtime.getTime()
 
-    if (fs.existsSync(execFile) && ctx.globalState.get('nimExecTimestamp', 0) == nimExecTimestamp) {
+    if (fs.existsSync(execFile) && ctx.globalState.get('nimExecTimestamp', 0) == nimExecTimestamp && 
+        ctx.globalState.get('nimSuggestTimestamp', 0) == nimSuggestTimestamp) {
         _nimSuggestPath = execFile; 
     } else {
         let nimCacheDir = path.resolve(nimSuggestDir, "nimcache");
@@ -51,6 +57,7 @@ export function initNimSuggest(ctx: vscode.ExtensionContext) {
             }
             _nimSuggestPath = execFile;
             ctx.globalState.update('nimExecTimestamp', nimExecTimestamp); 
+            ctx.globalState.update('nimSuggestTimestamp', nimSuggestTimestamp); 
         });
     }
 }
@@ -59,22 +66,49 @@ export function getNimSuggestPath(): string {
     return _nimSuggestPath;
 }
 
-export function getProjectFile(filename?: string) {
-    let config = vscode.workspace.getConfiguration("nim");
-    if (filename) {
-        filename = vscode.workspace.asRelativePath(filename);
-
-        if (filename.startsWith(path.sep)) {
-            filename = filename.slice(1);
+export function getProjectFile(filename: string) {
+    if (filename && !path.isAbsolute(filename)) {
+        filename = path.relative(vscode.workspace.rootPath, filename)
+    }
+    if (!isProjectMode()) {
+        return filename;
+    }
+    for (var i = 0; i < _projects.length; i++) {
+        let project = _projects[i];
+        if (filename.startsWith(path.dirname(project))) {
+            return project;
         }
     }
-    return config["project"] || filename || "";
+    return _projects[0];
 }
 
 export function getDirtyFile(document: vscode.TextDocument): string {
     var dirtyFilePath = path.normalize(path.join(os.tmpdir(), "vscode-nim-dirty.nim"));
     fs.writeFileSync(dirtyFilePath, document.getText());
     return dirtyFilePath;
+}
+
+export function isProjectMode(): boolean {
+    return _projects.length > 0;
+}
+
+export function getProjects(): string[] {
+    return _projects;
+}
+
+function prepareConfig(): void {
+    let config = vscode.workspace.getConfiguration('nim');
+    let projects = config["project"]; 
+    _projects = [];
+    if (projects) {
+      if (projects instanceof Array) {
+          projects.forEach((project) => {
+              _projects.push(path.isAbsolute(project) ? project : path.resolve(vscode.workspace.rootPath, project));
+          });
+      } else {
+          _projects.push(path.isAbsolute(projects) ? projects : path.resolve(vscode.workspace.rootPath, projects));
+      }
+    }
 }
 
 function getBinPath(tool: string): string {

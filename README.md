@@ -31,8 +31,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 	"nim.buildOnSave": false,
     "nim.buildCommand": "c",
 	"nim.lintOnSave": true,
-	"nim.project": "project.nim",
-	"nim.test-project": "tests.nim",
+	"nim.project": ["project.nim", "project2.nim"],
     "nim.licenseString": "# Copyright 2016.\n\n"
 }
 ```
@@ -41,8 +40,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 
 In addition to integrated editing features, the extension also provides several commands in the Command Palette for working with Nim files:
 
-* `Nim: Buld project` to build a project or opened file
-* `Nim: Run project` to build and run a project or opened file
+* `Nim: Build project` to build a project or opened file
 
 ## TODO
 
@@ -53,6 +51,10 @@ In addition to integrated editing features, the extension also provides several 
 * Debug support 
 
 ## History
+
+### 0.5.2
+* Added multiple projects support
+* Fixed some hangs during indexing 
 
 ### 0.5.1
 * Fixed #12 - Cannot compile nimsuggest 
@@ -68,7 +70,7 @@ In addition to integrated editing features, the extension also provides several 
 
 ### 0.4.9
 * Improved database indexes
-* Fixed miltiline error in nim check
+* Fixed multiline error in nim check
 * Fixed nimsuggest problem with mixed case path in windows
 
 ### 0.4.6

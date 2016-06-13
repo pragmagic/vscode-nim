@@ -2,7 +2,7 @@
     "name": "nim",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "publisher": "kosz78",
     "author": {
         "name": "Xored Software Inc."
@@ -82,18 +82,6 @@
                 "command": "nim.build",
                 "title": "Nim: Build project",
                 "description": "Build project"
-            },
-            {
-                "command": "nim.run",
-                "title": "Nim: Run project",
-                "description": "Build and run nim project"
-            }
-        ],
-        "keybindings": [
-            {
-                "command": "nim.run",
-                "key": "f6",
-                "mac": "f6"
             }
         ],
         "configuration": {
@@ -101,8 +89,8 @@
             "title": "Nim configuration",
             "properties": {
                 "nim.project": {
-                    "type": "string",
-                    "default": "",
+                    "type": "array",
+                    "default": [],
                     "description": "Nim project file, if empty use current selected."
                 },
                 "nim.test-project": {

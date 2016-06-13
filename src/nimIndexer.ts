@@ -15,7 +15,7 @@ import { showNimProgress, hideNimProgress, updateNimProgress } from './nimStatus
 import { getNimSuggestPath } from './nimUtils'
 
 let pathCache: { [tool: string]: string; } = {};
-let dbVersion: number = 3;
+let dbVersion: number = 4;
 
 var dbFiles: Datastore;
 var dbTypes: Datastore;
@@ -89,7 +89,7 @@ export function findWorkspaceSymbols(query: string): Promise<vscode.SymbolInform
     return new Promise<vscode.SymbolInformation[]>((resolve, reject) => {
         try {
             let reg = new RegExp(query, 'i');
-            dbTypes.find({ workspace: vscode.workspace.rootPath, type: reg }, (err, docs) => {
+            dbTypes.find<any>({ ws: vscode.workspace.rootPath, type: reg }).limit(100).exec((err, docs) => {
                 let symbols = [];
                 docs.forEach(doc => {
                     symbols.push(
@@ -143,23 +143,25 @@ async function indexFile(file: string): Promise<void> {
     let doc = await findFile(file, timestamp)
     if (!doc) {
         //console.log("index: " + file);
-        dbFiles.remove({ file: file }, { multi: true }, (err, n) => {
-            dbFiles.insert({ file: file, timestamp: timestamp });
-        });
         let infos = await getFileSymbols(file, null);
-        dbTypes.remove({ file: file }, { multi: true }, (err, n) => {
-            infos.forEach((value) => {
-                dbTypes.insert({
-                    workspace: vscode.workspace.rootPath,
-                    file: getNormalizedWorkspacePath(value.location.uri.fsPath),
-                    range_start: value.location.range.start,
-                    range_end: value.location.range.end,
-                    type: value.name,
-                    container: value.containerName,
-                    kind: value.kind
+        if (infos && infos.length > 0) {
+            dbFiles.remove({ file: file }, { multi: true }, (err, n) => {
+                dbFiles.insert({ file: file, timestamp: timestamp });
+            });
+            dbTypes.remove({ file: file }, { multi: true }, (err, n) => {
+                infos.forEach((value) => {
+                    dbTypes.insert({
+                        ws: vscode.workspace.rootPath,
+                        file: getNormalizedWorkspacePath(value.location.uri.fsPath),
+                        range_start: value.location.range.start,
+                        range_end: value.location.range.end,
+                        type: value.name,
+                        container: value.containerName,
+                        kind: value.kind
+                    });
                 });
             });
-        });
+        }
     }
     return;
 }

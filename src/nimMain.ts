@@ -16,7 +16,7 @@ import { NimHoverProvider } from './nimHover';
 import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutline';
 import * as indexer from './nimIndexer';
 import { NimSignatureHelpProvider } from './nimSignature';
-import { check, buildAndRun, ICheckResult } from './nimBuild';
+import { check, ICheckResult } from './nimBuild';
 import { NIM_MODE } from './nimMode'
 import { showHideStatus } from './nimStatus'
 import { initNimSuggest } from './nimUtils'
@@ -64,14 +64,12 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     startBuildOnSaveWatcher(ctx.subscriptions);
 
-    ctx.subscriptions.push(vscode.commands.registerCommand('nim.run', () => {
-        let config = vscode.workspace.getConfiguration('nim');
-        buildAndRun(config['project'] || vscode.window.activeTextEditor.document.fileName);
+    ctx.subscriptions.push(vscode.commands.registerCommand('nim.build', () => {
+        runBuilds(vscode.window.activeTextEditor.document, true);
     }));
 
     if (vscode.window.activeTextEditor) {
-        let nimConfig = vscode.workspace.getConfiguration('nim');
-        runBuilds(vscode.window.activeTextEditor.document, nimConfig);
+        runBuilds(vscode.window.activeTextEditor.document);
     }
 }
 
@@ -80,7 +78,8 @@ function deactivate() {
     fileWatcher.dispose();
 }
 
-function runBuilds(document: vscode.TextDocument, nimConfig: vscode.WorkspaceConfiguration) {
+function runBuilds(document: vscode.TextDocument, forceBuild?: boolean) {
+    let config = vscode.workspace.getConfiguration('nim');
 
     function mapSeverityToVSCodeSeverity(sev: string) {
         switch (sev) {
@@ -96,7 +95,7 @@ function runBuilds(document: vscode.TextDocument, nimConfig: vscode.WorkspaceCon
     }
 
     var uri = document.uri;
-    check(uri.fsPath, nimConfig).then(errors => {
+    check(uri.fsPath, config, forceBuild).then(errors => {
         diagnosticCollection.clear();
 
         let diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
@@ -135,7 +134,6 @@ function startBuildOnSaveWatcher(subscriptions: vscode.Disposable[]) {
         if (document.languageId != 'nim') {
             return;
         }
-        let nimConfig = vscode.workspace.getConfiguration('nim');
-        runBuilds(document, nimConfig);
+        runBuilds(document);
     }, null, subscriptions);
 }
