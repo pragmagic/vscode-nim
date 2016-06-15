@@ -117,10 +117,14 @@ function getBinPath(tool: string): string {
         var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
         _pathesCache[tool] = pathparts.map(dir => path.join(dir, correctBinname(tool))).filter(candidate => fs.existsSync(candidate))[0];
         if (process.platform !== 'win32') {
-            let args = process.platform === 'linux' ? ['-f', _pathesCache[tool]] : [_pathesCache[tool]] 
-            let buff = cp.execFileSync("readlink", args)
-            if (buff.length > 0) {
-                _pathesCache[tool] = buff.toString().trim()
+            let args = process.platform === 'linux' ? ['-f', _pathesCache[tool]] : [_pathesCache[tool]]
+            try { 
+                let buff = cp.execFileSync("readlink", args)
+                if (buff.length > 0) {
+                    _pathesCache[tool] = buff.toString().trim()
+                }
+            } catch(e) {
+                // ignore exception
             } 
         }
     }
