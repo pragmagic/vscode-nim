@@ -6,6 +6,26 @@
   "name": "Nim",
   "patterns": [
     {
+      "begin": "[ \\t]*##\\[",
+      "contentName": "comment.block.doc-comment.content.nim",
+      "end": "\\]##",
+      "name": "comment.block.doc-comment.nim",
+      "patterns": [{
+        "include": "#multilinedoccomment",
+        "name": "comment.block.doc-comment.nested.nim"
+      }]
+    },
+    {
+      "begin": "[ \\t]*#\\[",
+      "contentName": "comment.block.content.nim",
+      "end": "\\]#",
+      "name": "comment.block.nim",
+      "patterns": [{
+        "include": "#multilinecomment",
+        "name": "comment.block.nested.nim"
+      }]
+    },
+        {
       "begin": "(^[ \\t]+)?(?=##)",
       "beginCaptures": {
         "1": {
@@ -25,30 +45,8 @@
           "name": "comment.line.number-sign.doc-comment.nim"
         }
       ]
-    },
-    {
-      "begin": "(^[ \\t]+)?(?=#\\[)",
-      "beginCaptures": {
-        "1": {
-          "name": "punctuation.whitespace.comment.leading.nim"
-        }
-      },
-      "end": "(?!\\G)",
-      "patterns": [
-        {
-          "begin": "#\\[",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.comment.nim"
-            }
-          },
-          "end": "\\]#",
-          "name": "comment.block.nim"
-        }
-      ]
-    },
-    {
-      "begin": "(^[ \\t]+)?(?=#)",
+    },    {
+      "begin": "(^[ \\t]+)?(?=#[^\\[])",
       "beginCaptures": {
         "1": {
           "name": "punctuation.whitespace.comment.leading.nim"
@@ -953,6 +951,20 @@
     }
   ],
   "repository": {
+    "multilinecomment": {
+      "begin": "#\\[",
+      "end": "\\]#",
+      "patterns": [{
+        "include": "#multilinecomment"
+      }]
+    },
+    "multilinedoccomment": {
+      "begin": "##\\[",
+      "end": "\\]##",
+      "patterns": [{
+        "include": "#multilinedoccomment"
+      }]
+    },
     "escaped_char": {
       "patterns": [
         {
