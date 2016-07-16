@@ -39,7 +39,7 @@
         "vscode": "^0.11.x"
     },
     "engines": {
-        "vscode": "^1.0.0" 
+        "vscode": "^1.0.0"
     },
     "activationEvents": [
         "onLanguage:nim",
@@ -69,13 +69,13 @@
             {
                 "language": "nim",
                 "scopeName": "source.nim",
-                "path": "./syntaxes/Nim.tmLanguage"
+                "path": "./syntaxes/nim.json"
             },
             {
                 "language": "nimble",
                 "scopeName": "source.nimble",
                 "path": "./syntaxes/nimble.json"
-            }            
+            }
         ],
         "commands": [
             {
