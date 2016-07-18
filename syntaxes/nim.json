@@ -1,0 +1,1134 @@
+{
+  "fileTypes": [
+    "nim"
+  ],
+  "keyEquivalent": "^~N",
+  "name": "Nim",
+  "patterns": [
+    {
+      "begin": "[ \\t]*##\\[",
+      "contentName": "comment.block.doc-comment.content.nim",
+      "end": "\\]##",
+      "name": "comment.block.doc-comment.nim",
+      "patterns": [{
+        "include": "#multilinedoccomment",
+        "name": "comment.block.doc-comment.nested.nim"
+      }]
+    },
+    {
+      "begin": "[ \\t]*#\\[",
+      "contentName": "comment.block.content.nim",
+      "end": "\\]#",
+      "name": "comment.block.nim",
+      "patterns": [{
+        "include": "#multilinecomment",
+        "name": "comment.block.nested.nim"
+      }]
+    },
+        {
+      "begin": "(^[ \\t]+)?(?=##)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.whitespace.comment.leading.nim"
+        }
+      },
+      "end": "(?!\\G)",
+      "patterns": [
+        {
+          "begin": "##",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.nim"
+            }
+          },
+          "end": "\\n",
+          "name": "comment.line.number-sign.doc-comment.nim"
+        }
+      ]
+    },    {
+      "begin": "(^[ \\t]+)?(?=#[^\\[])",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.whitespace.comment.leading.nim"
+        }
+      },
+      "end": "(?!\\G)",
+      "patterns": [
+        {
+          "begin": "#",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.nim"
+            }
+          },
+          "end": "\\n",
+          "name": "comment.line.number-sign.nim"
+        }
+      ]
+    },
+    {
+      "comment": "A nim procedure or method",
+      "name": "meta.proc.nim",
+      "patterns": [
+        {
+          "begin": "\\b(proc|method|template|macro|iterator|converter)\\s+\\`?([^\\:\\{\\s\\`\\*\\(]*)\\`?(\\s*\\*)?\\s*(\\(|\\=|:|\\[|\\n|\\{)",
+          "captures": {
+            "1": {
+              "name": "storage.type.proc.nim"
+            },
+            "2": {
+              "name": "entity.name.function.nim"
+            },
+            "3": {
+              "name": "keyword.control.export"
+            }
+          },
+          "end": "\\)",
+          "patterns": [
+            {
+              "include": "source.nim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "discard \"\"\"",
+      "comment": "A discarded triple string literal comment",
+      "end": "\"\"\"(?!\")",
+      "name": "comment.line.discarded.nim"
+    },
+    {
+      "comment": "A float literal",
+      "match": "\\b\\d[_\\d]*((\\.[_\\d]+([eE][\\+\\-]?\\d[_\\d]*)?)|([eE][\\+\\-]?\\d[_\\d]*))('[fF](32|64))?",
+      "name": "constant.numeric.float.decimal.nim"
+    },
+    {
+      "comment": "A hexadecimal literal",
+      "match": "\\b(0[xX]\\h[_\\h]*)('(([iIuUfF](8|16|32|64))|[uU]))?",
+      "name": "constant.numeric.integer.hexadecimal.nim"
+    },
+    {
+      "comment": "A base-8 integer literal",
+      "match": "\\b(0o[0-7][_0-7]*)('(([iIuUfF](8|16|32|64))|[uU]))?",
+      "name": "constant.numeric.integer.octal.nim"
+    },
+    {
+      "comment": "A base-2 integer literal",
+      "match": "\\b(0(b|B)[01][_01]*)('(([iIuUfF](8|16|32|64))|[uU]))?",
+      "name": "constant.numeric.integer.binary.nim"
+    },
+    {
+      "comment": "A base-10 integer literal",
+      "match": "\\b(\\d[_\\d]*)('(([iIuUfF](8|16|32|64))|[uU]))?",
+      "name": "constant.numeric.integer.decimal.nim"
+    },
+    {
+      "comment": "Operator as function name",
+      "match": "(?<=\\`)[^\\` ]+(?=\\`)",
+      "name": "entity.name.function.nim"
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "keyword.control.export"
+        }
+      },
+      "comment": "Export qualifier.",
+      "match": "\\b\\s*(\\*)(?:\\s*(?=[,:])|\\s+(?=[=]))"
+    },
+    {
+      "comment": "Language Constants.",
+      "match": "\\b(true|false|inf|nil)\\b",
+      "name": "constant.language.nim"
+    },
+    {
+      "comment": "Keywords that affect program control flow or scope.",
+      "match": "\\b(block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield)\\b",
+      "name": "keyword.control.nim"
+    },
+    {
+      "comment": "Keyword boolean operators for expressions.",
+      "match": "(\\b(and|in|is|isnot|not|notin|or|xor)\\b)",
+      "name": "keyword.operator.boolean.nim"
+    },
+    {
+      "comment": "Generic operators for expressions.",
+      "match": "(=|\\+|-|\\*|/|<|>|@|\\$|~|&|%|!|\\?|\\^|\\.|:|\\\\)+",
+      "name": "keyword.operator.nim"
+    },
+    {
+      "comment": "Other keywords.",
+      "match": "(\\b(addr|as|atomic|bind|cast|const|converter|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|var)\\b)",
+      "name": "keyword.other.nim"
+    },
+    {
+      "comment": "Invalid and unused keywords.",
+      "match": "(\\b(generic|interface|lambda|out|shared|with|without)\\b)",
+      "name": "invalid.illegal.invalid-keyword.nim"
+    },
+    {
+      "comment": "Common functions",
+      "match": "\\b(new|await|assert|echo|defined|declared|newException|countup|countdown|high|low)\\b",
+      "name": "keyword.other.common.function.nim"
+    },
+    {
+      "comment": "Built-in, concrete types.",
+      "match": "\\b(((uint|int|float)(8|16|32|64)?)|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed)\\b",
+      "name": "storage.type.concrete.nim"
+    },
+    {
+      "comment": "Built-in, generic types.",
+      "match": "\\b(range|array|seq|tuple|natural|set|ref|ptr|pointer)\\b",
+      "name": "storage.type.generic.nim"
+    },
+    {
+      "comment": "Function types",
+      "match": "\\b(proc|iterator|method|template|macro)\\b",
+      "name": "storage.type.function.nim"
+    },
+    {
+      "comment": "Special types.",
+      "match": "\\b(openarray|varargs|void)\\b",
+      "name": "storage.type.generic.nim"
+    },
+    {
+      "comment": "Other constants.",
+      "match": "\\b[A-Z][A-Z0-9_]+\\b",
+      "name": "support.constant.nim"
+    },
+    {
+      "comment": "Other types.",
+      "match": "\\b[A-Z]\\w+\\b",
+      "name": "support.type.nim"
+    },
+    {
+      "comment": "Function call.",
+      "match": "\\b\\w+\\b(?=\\()",
+      "name": "support.function.any-method.nim"
+    },
+    {
+      "include": "#string_quoted_triple_raw"
+    },
+    {
+      "include": "#string_quoted_triple"
+    },
+    {
+      "include": "#string_quoted_double_raw"
+    },
+    {
+      "include": "#string_quoted_double"
+    },
+    {
+      "include": "#string_quoted_single"
+    },
+    {
+      "begin": "(^\\s*)?(?=\\{\\.emit: ?\"\"\")",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.leading.nim"
+        }
+      },
+      "end": "(?!\\G)(\\s*$\\n?)?",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.trailing.nim"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "\\{\\.(emit:) ?(\"\"\")",
+          "captures": {
+            "1": {
+              "name": "keyword.other.nim"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.nim"
+            }
+          },
+          "contentName": "source.c",
+          "end": "(\")\"\"(?!\")(\\.{0,1}\\})?",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.nim"
+            },
+            "1": {
+              "name": "source.c"
+            }
+          },
+          "name": "meta.embedded.block.c",
+          "patterns": [
+            {
+              "begin": "\\`",
+              "end": "\\`",
+              "name": "keyword.operator.nim"
+            },
+            {
+              "include": "source.c"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "\\{\\.",
+      "end": "\\.{0,1}\\}",
+      "name": "meta.preprocessor.nim",
+      "patterns": [
+        {
+          "include": "#string_quoted_triple"
+        },
+        {
+          "include": "#string_quoted_double_raw"
+        },
+        {
+          "include": "#string_quoted_double"
+        },
+        {
+          "include": "#string_quoted_single"
+        }
+      ]
+    },
+    {
+      "begin": "(^\\s*)?(?=asm \"\"\")",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.leading.nim"
+        }
+      },
+      "end": "(?!\\G)(\\s*$\\n?)?",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.trailing.nim"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(asm) (\"\"\")",
+          "captures": {
+            "1": {
+              "name": "keyword.other.nim"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.nim"
+            }
+          },
+          "contentName": "source.asm",
+          "end": "(\")\"\"(?!\")",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.nim"
+            },
+            "1": {
+              "name": "source.asm"
+            }
+          },
+          "name": "meta.embedded.block.asm",
+          "patterns": [
+            {
+              "begin": "\\`",
+              "end": "\\`",
+              "name": "keyword.operator.nim"
+            },
+            {
+              "include": "source.asm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "storage.type.function.nim"
+        },
+        "2": {
+          "name": "keyword.operator.nim"
+        }
+      },
+      "comment": "tmpl specifier",
+      "match": "(tmpl(i)?)(?=( (html|xml|js|css|glsl|md))?\"\"\")"
+    },
+    {
+      "begin": "(^\\s*)?(?=html\"\"\")",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.leading.nim"
+        }
+      },
+      "end": "(?!\\G)(\\s*$\\n?)?",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.trailing.nim"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(html)(\"\"\")",
+          "captures": {
+            "1": {
+              "name": "keyword.other.nim"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.nim"
+            }
+          },
+          "contentName": "text.html",
+          "end": "(\")\"\"(?!\")",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.nim"
+            },
+            "1": {
+              "name": "text.html"
+            }
+          },
+          "name": "meta.embedded.block.html",
+          "patterns": [
+            {
+              "begin": "(?<!\\$)(\\$)\\(",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\)",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)\\{",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)(for|while|case|of|when|if|else|elif)( )",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "(\\{|\\n)",
+              "endCaptures": {
+                "1": {
+                  "name": "plain"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "match": "(?<!\\$)(\\$\\w+)",
+              "name": "keyword.operator.nim"
+            },
+            {
+              "include": "text.html"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "(^\\s*)?(?=xml\"\"\")",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.leading.nim"
+        }
+      },
+      "end": "(?!\\G)(\\s*$\\n?)?",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.trailing.nim"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(xml)(\"\"\")",
+          "captures": {
+            "1": {
+              "name": "keyword.other.nim"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.nim"
+            }
+          },
+          "contentName": "text.xml",
+          "end": "(\")\"\"(?!\")",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.nim"
+            },
+            "1": {
+              "name": "text.xml"
+            }
+          },
+          "name": "meta.embedded.block.xml",
+          "patterns": [
+            {
+              "begin": "(?<!\\$)(\\$)\\(",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\)",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)\\{",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)(for|while|case|of|when|if|else|elif)( )",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "(\\{|\\n)",
+              "endCaptures": {
+                "1": {
+                  "name": "plain"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "match": "(?<!\\$)(\\$\\w+)",
+              "name": "keyword.operator.nim"
+            },
+            {
+              "include": "text.xml"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "(^\\s*)?(?=js\"\"\")",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.leading.nim"
+        }
+      },
+      "end": "(?!\\G)(\\s*$\\n?)?",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.trailing.nim"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(js)(\"\"\")",
+          "captures": {
+            "1": {
+              "name": "keyword.other.nim"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.nim"
+            }
+          },
+          "contentName": "source.js",
+          "end": "(\")\"\"(?!\")",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.nim"
+            },
+            "1": {
+              "name": "source.js"
+            }
+          },
+          "name": "meta.embedded.block.js",
+          "patterns": [
+            {
+              "begin": "(?<!\\$)(\\$)\\(",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\)",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)\\{",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)(for|while|case|of|when|if|else|elif)( )",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "(\\{|\\n)",
+              "endCaptures": {
+                "1": {
+                  "name": "plain"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "match": "(?<!\\$)(\\$\\w+)",
+              "name": "keyword.operator.nim"
+            },
+            {
+              "include": "source.js"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "(^\\s*)?(?=css\"\"\")",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.leading.nim"
+        }
+      },
+      "end": "(?!\\G)(\\s*$\\n?)?",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.trailing.nim"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(css)(\"\"\")",
+          "captures": {
+            "1": {
+              "name": "keyword.other.nim"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.nim"
+            }
+          },
+          "contentName": "source.css",
+          "end": "(\")\"\"(?!\")",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.nim"
+            },
+            "1": {
+              "name": "source.css"
+            }
+          },
+          "name": "meta.embedded.block.css",
+          "patterns": [
+            {
+              "begin": "(?<!\\$)(\\$)\\(",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\)",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)\\{",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)(for|while|case|of|when|if|else|elif)( )",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "(\\{|\\n)",
+              "endCaptures": {
+                "1": {
+                  "name": "plain"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "match": "(?<!\\$)(\\$\\w+)",
+              "name": "keyword.operator.nim"
+            },
+            {
+              "include": "source.css"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "(^\\s*)?(?=glsl\"\"\")",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.leading.nim"
+        }
+      },
+      "end": "(?!\\G)(\\s*$\\n?)?",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.trailing.nim"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(glsl)(\"\"\")",
+          "captures": {
+            "1": {
+              "name": "keyword.other.nim"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.nim"
+            }
+          },
+          "contentName": "source.glsl",
+          "end": "(\")\"\"(?!\")",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.nim"
+            },
+            "1": {
+              "name": "source.glsl"
+            }
+          },
+          "name": "meta.embedded.block.glsl",
+          "patterns": [
+            {
+              "begin": "(?<!\\$)(\\$)\\(",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\)",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)\\{",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)(for|while|case|of|when|if|else|elif)( )",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "(\\{|\\n)",
+              "endCaptures": {
+                "1": {
+                  "name": "plain"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "match": "(?<!\\$)(\\$\\w+)",
+              "name": "keyword.operator.nim"
+            },
+            {
+              "include": "source.glsl"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "(^\\s*)?(?=md\"\"\")",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.leading.nim"
+        }
+      },
+      "end": "(?!\\G)(\\s*$\\n?)?",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.whitespace.embedded.trailing.nim"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(md)(\"\"\")",
+          "captures": {
+            "1": {
+              "name": "keyword.other.nim"
+            },
+            "2": {
+              "name": "punctuation.section.embedded.begin.nim"
+            }
+          },
+          "contentName": "text.html.markdown",
+          "end": "(\")\"\"(?!\")",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.nim"
+            },
+            "1": {
+              "name": "text.html.markdown"
+            }
+          },
+          "name": "meta.embedded.block.html.markdown",
+          "patterns": [
+            {
+              "begin": "(?<!\\$)(\\$)\\(",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\)",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)\\{",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "\\}",
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "begin": "(?<!\\$)(\\$)(for|while|case|of|when|if|else|elif)( )",
+              "captures": {
+                "1": {
+                  "name": "keyword.operator.nim"
+                },
+                "2": {
+                  "name": "keyword.operator.nim"
+                }
+              },
+              "end": "(\\{|\\n)",
+              "endCaptures": {
+                "1": {
+                  "name": "plain"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "source.nim"
+                }
+              ]
+            },
+            {
+              "match": "(?<!\\$)(\\$\\w+)",
+              "name": "keyword.operator.nim"
+            },
+            {
+              "include": "text.html.markdown"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "multilinecomment": {
+      "begin": "#\\[",
+      "end": "\\]#",
+      "patterns": [{
+        "include": "#multilinecomment"
+      }]
+    },
+    "multilinedoccomment": {
+      "begin": "##\\[",
+      "end": "\\]##",
+      "patterns": [{
+        "include": "#multilinedoccomment"
+      }]
+    },
+    "escaped_char": {
+      "patterns": [
+        {
+          "match": "\\\\[nN]",
+          "name": "constant.character.escape.newline.nim"
+        },
+        {
+          "match": "\\\\[cC]|\\\\[rR]",
+          "name": "constant.character.escape.carriagereturn.nim"
+        },
+        {
+          "match": "\\\\[lL]",
+          "name": "constant.character.escape.linefeed.nim"
+        },
+        {
+          "match": "\\\\[fF]",
+          "name": "constant.character.escape.formfeed.nim"
+        },
+        {
+          "match": "\\\\[tT]",
+          "name": "constant.character.escape.tabulator.nim"
+        },
+        {
+          "match": "\\\\[vV]",
+          "name": "constant.character.escape.verticaltabulator.nim"
+        },
+        {
+          "match": "\\\\\\\"",
+          "name": "constant.character.escape.double-quote.nim"
+        },
+        {
+          "match": "\\\\'",
+          "name": "constant.character.escape.single-quote.nim"
+        },
+        {
+          "match": "\\\\[0-9]+",
+          "name": "constant.character.escape.chardecimalvalue.nim"
+        },
+        {
+          "match": "\\\\[aA]",
+          "name": "constant.character.escape.alert.nim"
+        },
+        {
+          "match": "\\\\[bB]",
+          "name": "constant.character.escape.backspace.nim"
+        },
+        {
+          "match": "\\\\[eE]",
+          "name": "constant.character.escape.escape.nim"
+        },
+        {
+          "match": "\\\\[xX]\\h\\h",
+          "name": "constant.character.escape.hex.nim"
+        },
+        {
+          "match": "\\\\\\\\",
+          "name": "constant.character.escape.backslash.nim"
+        }
+      ]
+    },
+    "string_quoted_double": {
+      "begin": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
+      "comment": "Double Quoted String",
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.double.nim",
+      "patterns": [
+        {
+          "include": "#escaped_char"
+        }
+      ]
+    },
+    "string_quoted_double_raw": {
+      "begin": "r\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
+      "comment": "Raw Double Quoted String",
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.double.raw.nim",
+      "patterns": [
+        {
+          "match": "\"\""
+        }
+      ]
+    },
+    "string_quoted_single": {
+      "begin": "'",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
+      "comment": "Single quoted character literal",
+      "end": "'",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.single.nim",
+      "patterns": [
+        {
+          "match": "\\\\n",
+          "name": "invalid.illegal.character.nim"
+        },
+        {
+          "include": "#escaped_char"
+        },
+        {
+          "match": "([^']{2,}?)",
+          "name": "invalid.illegal.character.nim"
+        }
+      ]
+    },
+    "string_quoted_triple": {
+      "begin": "\"\"\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
+      "comment": "Triple Quoted String",
+      "end": "\"\"\"(?!\")",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.triple.nim"
+    },
+    "string_quoted_triple_raw": {
+      "begin": "r\"\"\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
+      "comment": "Raw Triple Quoted String",
+      "end": "\"\"\"(?!\")",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.triple.raw.nim"
+    }
+  },
+  "scopeName": "source.nim",
+  "uuid": "6DD62CE8-B129-4554-BD8E-CE5DB490E5A4"
+}
