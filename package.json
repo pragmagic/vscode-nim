@@ -114,6 +114,12 @@
                     "description": "Check code by using 'nim check' on save."
                 }
             }
-        }
+        },
+        "snippets": [
+            {
+                "language": "nim",
+                "path": "./snippets/nim.json"
+            }
+        ]
     }
 }
