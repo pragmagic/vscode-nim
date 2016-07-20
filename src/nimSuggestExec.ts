@@ -184,8 +184,12 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
             resolve(nimSuggestProcessCache[nimProject]);
             return;
         }
-
-        let process = cp.spawn(getNimSuggestPath(), ['--epc', '--v2', nimProject], { cwd: vscode.workspace.rootPath });
+        var args = ['--epc', '--v2'];
+        if (!!vscode.workspace.getConfiguration('nim').get('verboseNimsuggest')) {
+            args.push('--verbose');
+        }
+        args.push(nimProject);
+        let process = cp.spawn(getNimSuggestPath(), args, { cwd: vscode.workspace.rootPath });
         process.stdout.once("data", (data) => {
             elrpc.startClient(parseInt(data.toString())).then((client) => {
                 nimSuggestProcessCache[nimProject] = { process: process, rpc: client };

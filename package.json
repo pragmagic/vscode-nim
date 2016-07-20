@@ -112,6 +112,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Check code by using 'nim check' on save."
+                },
+                "nim.verboseNimsuggest": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable verbose logging of nimsuggest."
                 }
             }
         },
