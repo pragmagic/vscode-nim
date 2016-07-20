@@ -16,7 +16,7 @@ import strutils, os, parseopt, parseutils, sequtils, net, rdstdin, sexp
 import compiler/options, compiler/commands, compiler/modules, compiler/sem,
   compiler/passes, compiler/passaux, compiler/msgs, compiler/nimconf,
   compiler/extccomp, compiler/condsyms, compiler/lists,
-  compiler/sigmatch, compiler/ast
+  compiler/sigmatch, compiler/ast, compiler/scriptconfig
 
 when defined(windows):
   import winlean
@@ -266,10 +266,23 @@ proc serveTcp() =
     stdoutSocket.send("\c\L")
     stdoutSocket.close()
 
+proc logStr(line: string) =
+  var f: File
+  if open(f, getHomeDir() / "nimsuggest.log", fmAppend):
+    f.writeLine(line)
+    f.close()
+
 proc serveEpc(server: Socket) =
   var client = newSocket()
   # Wait for connection
   accept(server, client)
+  when false:
+    var it = searchPaths.head
+    while it != nil:
+      logStr(PStrEntry(it).data)
+      it = it.next
+    msgs.writelnHook = proc (line: string) = logStr(line)
+
   while true:
     var
       sizeHex = ""
@@ -286,7 +299,6 @@ proc serveEpc(server: Socket) =
         args = message[3]
 
       gIdeCmd = parseIdeCmd(message[2].getStr)
-
       case gIdeCmd
       of ideChk:
         setVerbosity(1)
@@ -314,6 +326,7 @@ proc serveEpc(server: Socket) =
       raise newException(EUnexpectedCommand, errMessage)
 
 proc mainCommand =
+  clearPasses()
   registerPass verbosePass
   registerPass semPass
   gCmd = cmdIdeTools
@@ -321,9 +334,9 @@ proc mainCommand =
   isServing = true
   wantMainModule()
   appendStr(searchPaths, options.libpath)
-  if gProjectFull.len != 0:
+  #if gProjectFull.len != 0:
     # current path is always looked first for modules
-    prependStr(searchPaths, gProjectPath)
+  #  prependStr(searchPaths, gProjectPath)
 
   # do not stop after the first error:
   msgs.gErrorMax = high(int)
@@ -339,6 +352,7 @@ proc mainCommand =
     compileProject()
     serveTcp()
   of mepc:
+    modules.gFuzzyGraphChecking = true
     var server = newSocket()
     let port = connectToNextFreePort(server, "localhost")
     server.listen()
@@ -378,6 +392,8 @@ proc handleCmdLine() =
     stdout.writeline(Usage)
   else:
     processCmdLine(passCmd1, "")
+    if gMode != mstdin:
+      msgs.writelnHook = proc (msg: string) = discard
     if gProjectName != "":
       try:
         gProjectFull = canonicalizePath(gProjectName)
@@ -395,12 +411,24 @@ proc handleCmdLine() =
       raise newException(IOError,
           "Cannot find Nim standard library: Nim compiler not in PATH")
     gPrefixDir = binaryPath.splitPath().head.parentDir()
+    #msgs.writelnHook = proc (line: string) = logStr(line)
 
     loadConfigs(DefaultConfig) # load all config files
     # now process command line arguments again, because some options in the
     # command line can overwite the config file's settings
+    options.command = "nimsuggest"
+    let scriptFile = gProjectFull.changeFileExt("nims")
+    if fileExists(scriptFile):
+      runNimScript(scriptFile, freshDefines=false)
+      # 'nim foo.nims' means to just run the NimScript file and do nothing more:
+      if scriptFile == gProjectFull: return
+    elif fileExists(gProjectPath / "config.nims"):
+      # directory wide NimScript file
+      runNimScript(gProjectPath / "config.nims", freshDefines=false)
+
     extccomp.initVars()
     processCmdLine(passCmd2, "")
+
     mainCommand()
 
 when false:
