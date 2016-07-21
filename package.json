@@ -2,7 +2,7 @@
     "name": "nim",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code",
-    "version": "0.5.3",
+    "version": "0.5.4",
     "publisher": "kosz78",
     "author": {
         "name": "Xored Software Inc."
@@ -94,7 +94,7 @@
                 "nim.buildOnSave": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Rebuild project on save."
+                    "description": "Execute build task from tasks.json file on save."
                 },
                 "nim.buildCommand": {
                     "type": "string",

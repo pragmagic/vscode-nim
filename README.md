@@ -25,22 +25,34 @@ _Note_: It is recommended to turn `Auto Save` on in Visual Studio Code (`File ->
 ### Options
 
 The following Visual Studio Code settings are available for the Nim extension.  These can be set in user preferences (`cmd+,`) or workspace settings (`.vscode/settings.json`).
+* `nim.buildOnSave` - perform build task from `tasks.json` file, to use this options you need declare build task according to [Tasks Documentaiton](https://code.visualstudio.com/docs/editor/taskshttps://code.visualstudio.com/docs/editor/tasks), for example:
+	```json
+	{
+  	   "version": "0.1.0",
+  	   "command": "nim",
+	   "args": ["c", "-r", "module.nim"],
+	   "options": {
+	      "cwd": "${workspaceRoot}"
+  	   },
+	      "isShellCommand": true
+  	   }
+	}
+	``` 
+* `nim.lintOnSave` - perform the project check for errors on save
+* `nim.project` - optional array of projects file, if nim.project not defined then all nim files will be used as separate project
+* `nim.licenseString` - optional license text that will be inserted on nim file creation 
 
-```javascript
+#### Example
+
+```json
 {
 	"nim.buildOnSave": false,
-    "nim.buildCommand": "c",
+	"nim.buildCommand": "c",
 	"nim.lintOnSave": true,
 	"nim.project": ["project.nim", "project2.nim"],
-    "nim.licenseString": "# Copyright 2016.\n\n"
+	"nim.licenseString": "# Copyright 2016.\n\n"
 }
 ```
-
-### Commands
-
-In addition to integrated editing features, the extension also provides several commands in the Command Palette for working with Nim files:
-
-* `Nim: Build project` to build a project or opened file
 
 ## TODO
 
@@ -51,6 +63,13 @@ In addition to integrated editing features, the extension also provides several 
 * Debug support 
 
 ## History
+
+### 0.5.4
+* Added snippets [PR #18](https://github.com/pragmagic/vscode-nim/pull/18)
+* Added a new nimsuggest
+* Updated buildOnSave relative to tasks.json
+* Fixed [Multiline comments syntax highlight.](https://github.com/pragmagic/vscode-nim/issues/11)
+* Minor improvements and stability fixes 
 
 ### 0.5.2
 * Added multiple projects support
