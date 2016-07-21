@@ -33,7 +33,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
     diagnosticCollection = vscode.languages.createDiagnosticCollection('nim');
     ctx.subscriptions.push(diagnosticCollection);
-
+    
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
 
     console.log(ctx.extensionPath);
@@ -63,12 +63,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     startBuildOnSaveWatcher(ctx.subscriptions);
 
-    ctx.subscriptions.push(vscode.commands.registerCommand('nim.build', () => {
-        runBuilds(vscode.window.activeTextEditor.document, true);
-    }));
-
     if (vscode.window.activeTextEditor) {
-        runBuilds(vscode.window.activeTextEditor.document);
+        runCheck(vscode.window.activeTextEditor.document);
     }
 }
 
@@ -77,7 +73,7 @@ function deactivate() {
     fileWatcher.dispose();
 }
 
-function runBuilds(document: vscode.TextDocument, forceBuild?: boolean) {
+function runCheck(document: vscode.TextDocument) {
     let config = vscode.workspace.getConfiguration('nim');
 
     function mapSeverityToVSCodeSeverity(sev: string) {
@@ -94,7 +90,7 @@ function runBuilds(document: vscode.TextDocument, forceBuild?: boolean) {
     }
 
     var uri = document.uri;
-    check(uri.fsPath, config, forceBuild).then(errors => {
+    check(uri.fsPath, config).then(errors => {
         diagnosticCollection.clear();
 
         let diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
@@ -133,6 +129,9 @@ function startBuildOnSaveWatcher(subscriptions: vscode.Disposable[]) {
         if (document.languageId != 'nim') {
             return;
         }
-        runBuilds(document);
+        runCheck(document);
+        if (!!vscode.workspace.getConfiguration('nim')['buildOnSave']) {
+           vscode.commands.executeCommand("workbench.action.tasks.build");
+        }
     }, null, subscriptions);
 }

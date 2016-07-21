@@ -86,15 +86,10 @@ function parseErrors(lines: string[]): ICheckResult[] {
     return ret;
 }
 
-export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration, forceBuild?: boolean): Promise<ICheckResult[]> {
+export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration): Promise<ICheckResult[]> {
     var runningToolsPromises = [];
     var cwd = path.dirname(filename);
 
-    if (!!nimConfig['buildOnSave'] || forceBuild) {
-        let projectFile = getProjectFile(filename);
-        let args = ['--listFullPaths', projectFile]; 
-        runningToolsPromises.push(nimExec(nimConfig['buildCommand'] || "c", args, true, true, parseErrors));
-    }
     if (!!nimConfig['lintOnSave']) {
         if (!isProjectMode()) {
             runningToolsPromises.push(nimExec("check", ['--listFullPaths', getProjectFile(filename)], true, false, parseErrors));
