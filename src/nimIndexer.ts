@@ -10,9 +10,8 @@ import Datastore = require('nedb');
 import path = require('path');
 import fs = require('fs');
 
-import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec'
+import { getNimSuggestPath, execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec'
 import { showNimProgress, hideNimProgress, updateNimProgress } from './nimStatus'
-import { getNimSuggestPath } from './nimUtils'
 
 let pathCache: { [tool: string]: string; } = {};
 let dbVersion: number = 4;

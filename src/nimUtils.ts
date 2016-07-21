@@ -13,7 +13,6 @@ import vscode = require('vscode');
 import { showNimStatus, hideNimStatus } from './nimStatus'
 
 let _pathesCache: { [tool: string]: string; } = {};
-var _nimSuggestPath: string = undefined;
 var _projects: string[] = []; 
 
 export function getNimExecPath(): string {
@@ -22,48 +21,6 @@ export function getNimExecPath(): string {
         vscode.window.showInformationMessage("No 'nim' binary could be found in PATH environment variable");
     }
     return path;
-}
-
-export function initNimSuggest(ctx: vscode.ExtensionContext) {
-    prepareConfig();
-    vscode.workspace.onDidChangeConfiguration(prepareConfig);
-    let extensionPath = ctx.extensionPath
-    var nimSuggestDir = path.resolve(extensionPath, "nimsuggest");
-    var nimSuggestSourceFile = path.resolve(nimSuggestDir, "nimsuggest.nim");
-    var execFile = path.resolve(nimSuggestDir, correctBinname("nimsuggest"));
-    var nimExecTimestamp = fs.statSync(getNimExecPath()).mtime.getTime()
-    var nimSuggestTimestamp = fs.statSync(nimSuggestSourceFile).mtime.getTime()
-
-    if (fs.existsSync(execFile) && ctx.globalState.get('nimExecTimestamp', 0) == nimExecTimestamp && 
-        ctx.globalState.get('nimSuggestTimestamp', 0) == nimSuggestTimestamp) {
-        _nimSuggestPath = execFile; 
-    } else {
-        let nimCacheDir = path.resolve(nimSuggestDir, "nimcache");
-        if (fs.existsSync(nimCacheDir)) {
-            removeDirSync(nimCacheDir);
-        }
-        let cmd = '"' + getNimExecPath()  + '" c -d:release --path:"' + path.dirname(path.dirname(getNimExecPath())) + '" nimsuggest.nim';
-        showNimStatus('Compiling nimsuggest', '');
-        cp.exec(cmd, { cwd: nimSuggestDir }, (error, stdout, stderr) => {
-            hideNimStatus();
-
-            if (error) {
-                vscode.window.showWarningMessage("Cannot compile nimsuggest. See console log for details");
-                console.log(error);
-                return;
-            }
-            if (stderr && stderr.length > 0) {
-                console.error(stderr);
-            }
-            _nimSuggestPath = execFile;
-            ctx.globalState.update('nimExecTimestamp', nimExecTimestamp); 
-            ctx.globalState.update('nimSuggestTimestamp', nimSuggestTimestamp); 
-        });
-    }
-}
-
-export function getNimSuggestPath(): string {
-    return _nimSuggestPath;
 }
 
 export function getProjectFile(filename: string) {
@@ -96,7 +53,7 @@ export function getProjects(): string[] {
     return _projects;
 }
 
-function prepareConfig(): void {
+export function prepareConfig(): void {
     let config = vscode.workspace.getConfiguration('nim');
     let projects = config["project"]; 
     _projects = [];
@@ -111,7 +68,7 @@ function prepareConfig(): void {
     }
 }
 
-function getBinPath(tool: string): string {
+export function getBinPath(tool: string): string {
     if (_pathesCache[tool]) return _pathesCache[tool];
     if (process.env["PATH"]) {
         var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
@@ -131,7 +88,7 @@ function getBinPath(tool: string): string {
     return _pathesCache[tool];
 }
 
-function correctBinname(binname: string): string {
+export function correctBinname(binname: string): string {
     if (process.platform === 'win32') {
         return binname + ".exe";
     } else {
@@ -139,7 +96,7 @@ function correctBinname(binname: string): string {
     }
 }
 
-function removeDirSync(p: string): void {
+export function removeDirSync(p: string): void {
     if (fs.existsSync(p)) {
         fs.readdirSync(p).forEach((file, index) => {
             var curPath = path.resolve(p, file);

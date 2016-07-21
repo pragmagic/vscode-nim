@@ -8,7 +8,7 @@
 import vscode = require('vscode');
 import fs = require('fs');
 
-import { closeAllNimSuggestProcesses, closeNimSuggestProcess } from './nimSuggestExec';
+import { initNimSuggest, closeAllNimSuggestProcesses, closeNimSuggestProcess } from './nimSuggestExec';
 import { NimCompletionItemProvider } from './nimSuggest';
 import { NimDefinitionProvider } from './nimDeclaration';
 import { NimReferenceProvider } from './nimReferences';
@@ -19,7 +19,6 @@ import { NimSignatureHelpProvider } from './nimSignature';
 import { check, ICheckResult } from './nimBuild';
 import { NIM_MODE } from './nimMode'
 import { showHideStatus } from './nimStatus'
-import { initNimSuggest } from './nimUtils'
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;

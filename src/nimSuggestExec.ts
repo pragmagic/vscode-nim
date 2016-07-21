@@ -12,17 +12,20 @@ import os = require('os');
 import fs = require('fs');
 import net = require('net');
 import elrpc = require('elrpc');
-import {getNimSuggestPath, getProjectFile, isProjectMode} from './nimUtils';
+import {prepareConfig, getProjectFile, isProjectMode, getNimExecPath, removeDirSync, correctBinname} from './nimUtils';
 import {getNormalizedWorkspacePath} from './nimIndexer';
+import {hideNimStatus, showNimStatus} from './nimStatus';
 
 class NimSuggestProcessDescription {
     process: cp.ChildProcess;
+    timeout: number;
     rpc: elrpc.RPCServer;
 }
 
-let NIM_SUGGEST_RESPONSE_TIMEOUT = 5000;
+let NIM_SUGGEST_TIMEOUT = 10000;
 
 let nimSuggestProcessCache: { [project: string]: NimSuggestProcessDescription } = {};
+var _nimSuggestPath: string = undefined;
 
 export enum NimSuggestType {
     /** Suggest from position */
@@ -113,6 +116,49 @@ export class NimSuggestResult {
     }
 }
 
+export function getNimSuggestPath(): string {
+    return _nimSuggestPath;
+}
+
+export function initNimSuggest(ctx: vscode.ExtensionContext) {
+    prepareConfig();
+    vscode.workspace.onDidChangeConfiguration(prepareConfig);
+    let extensionPath = ctx.extensionPath
+    var nimSuggestDir = path.resolve(extensionPath, "nimsuggest");
+    var nimSuggestSourceFile = path.resolve(nimSuggestDir, "nimsuggest.nim");
+    var execFile = path.resolve(nimSuggestDir, correctBinname("nimsuggest"));
+    var nimExecTimestamp = fs.statSync(getNimExecPath()).mtime.getTime()
+    var nimSuggestTimestamp = fs.statSync(nimSuggestSourceFile).mtime.getTime()
+
+    if (fs.existsSync(execFile) && ctx.globalState.get('nimExecTimestamp', 0) == nimExecTimestamp && 
+        ctx.globalState.get('nimSuggestTimestamp', 0) == nimSuggestTimestamp) {
+        _nimSuggestPath = execFile; 
+    } else {
+        let nimCacheDir = path.resolve(nimSuggestDir, "nimcache");
+        if (fs.existsSync(nimCacheDir)) {
+            removeDirSync(nimCacheDir);
+        }
+        let cmd = '"' + getNimExecPath()  + '" c -d:release --path:"' + path.dirname(path.dirname(getNimExecPath())) + '" nimsuggest.nim';
+        showNimStatus('Compiling nimsuggest', '');
+        cp.exec(cmd, { cwd: nimSuggestDir }, (error, stdout, stderr) => {
+            hideNimStatus();
+
+            if (error) {
+                vscode.window.showWarningMessage("Cannot compile nimsuggest. See console log for details");
+                console.log(error);
+                return;
+            }
+            if (stderr && stderr.length > 0) {
+                console.error(stderr);
+            }
+            _nimSuggestPath = execFile;
+            ctx.globalState.update('nimExecTimestamp', nimExecTimestamp); 
+            ctx.globalState.update('nimSuggestTimestamp', nimSuggestTimestamp); 
+        });
+    }
+    setInterval(checkNimsuggestProcesses, 1000);
+}
+
 export async function execNimSuggest(suggestType: NimSuggestType, filename: string,
     line: number, column: number, dirtyFile?: string, onClose?: () => void): Promise<NimSuggestResult[]> {
     var nimSuggestExec = getNimSuggestPath();
@@ -122,15 +168,8 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
     }
     try {
         let desc = await getNimSuggestProcess(getProjectFile(filename));
-
-        var responseReceived = false;
-        setTimeout(() => {
-            if (!responseReceived) {
-                closeNimSuggestProcess(filename);
-            }
-        }, NIM_SUGGEST_RESPONSE_TIMEOUT);
         let ret = await desc.rpc.callMethod(NimSuggestType[suggestType], filename.replace(/\\+/g, '/'), line, column, dirtyFile);
-        responseReceived = true;
+        desc.timeout = new Date().getTime();
 
         var result: NimSuggestResult[] = [];
         if (ret != null) {
@@ -163,7 +202,10 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
 
 export function closeAllNimSuggestProcesses(): void {
     for (var project in nimSuggestProcessCache) {
-        nimSuggestProcessCache[project].process.kill();
+        let desc = nimSuggestProcessCache[project];
+        nimSuggestProcessCache[project] = undefined;
+        desc.rpc.stop();
+        desc.process.kill();
     }
     nimSuggestProcessCache = {};
 }
@@ -172,9 +214,17 @@ export async function closeNimSuggestProcess(filename: string): Promise<void> {
     var file = getProjectFile(filename);
     if (nimSuggestProcessCache[file]) {
         let desc = nimSuggestProcessCache[file];
-        nimSuggestProcessCache[file] = null;
+        nimSuggestProcessCache[file] = undefined;
         await desc.rpc.stop();
         desc.process.kill();
+    }
+}
+
+function checkNimsuggestProcesses(): void {
+    for (var project in nimSuggestProcessCache) {
+        if (nimSuggestProcessCache[project] && nimSuggestProcessCache[project].timeout + NIM_SUGGEST_TIMEOUT < new Date().getTime()) {
+            closeNimSuggestProcess(project);
+        }
     }
 }
 
@@ -192,7 +242,7 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
         let process = cp.spawn(getNimSuggestPath(), args, { cwd: vscode.workspace.rootPath });
         process.stdout.once("data", (data) => {
             elrpc.startClient(parseInt(data.toString())).then((client) => {
-                nimSuggestProcessCache[nimProject] = { process: process, rpc: client };
+                nimSuggestProcessCache[nimProject] = { process: process, timeout: new Date().getTime(), rpc: client };
                 client.socket.on("error", err => {
                     closeNimSuggestProcess(nimProject);
                 });
@@ -203,7 +253,7 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
             if (nimSuggestProcessCache[nimProject] && nimSuggestProcessCache[nimProject].rpc) {
                 nimSuggestProcessCache[nimProject].rpc.stop();
             }
-            nimSuggestProcessCache[nimProject] = null;
+            nimSuggestProcessCache[nimProject] = undefined;
             reject();
         });
     });
