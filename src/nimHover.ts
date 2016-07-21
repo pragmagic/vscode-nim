@@ -19,7 +19,11 @@ export class NimHoverProvider implements vscode.HoverProvider {
         getDirtyFile(document)).then(result => {
           if (result && result.length > 0) {
             let def = result.pop();
-            resolve(new vscode.Hover(def.fullName, def.range));
+
+            let label = def.fullName;
+            if (def.type != "")
+              label += ": " + def.type;
+            resolve(new vscode.Hover(label, def.range));
           } else {
             resolve(null);
           }
