@@ -1,5 +1,8 @@
 # Nim for Visual Studio Code
 
+[![Version](http://vsmarketplacebadge.apphb.com/version/kosz78.nim.svg)](https://marketplace.visualstudio.com/items?itemName=kosz78.nim)
+[![Installs](http://vsmarketplacebadge.apphb.com/installs/kosz78.nim.svg)](https://marketplace.visualstudio.com/items?itemName=kosz78.nim)
+[![Ratings](https://vsmarketplacebadge.apphb.com/rating/kosz78.nim.svg)](https://vsmarketplacebadge.apphb.com/rating/kosz78.nim.svg)
 [![Build Status](https://travis-ci.org/pragmagic/vscode-nim.svg?branch=master)](https://travis-ci.org/pragmagic/vscode-nim)
 
 This extension adds language support for the Nim language to VS Code, including:
@@ -62,46 +65,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 * Code action for imports (suggest available modules to import)
 * Debug support 
 
-## History
+## ChangeLog
 
-### 0.5.4
-* Added snippets [PR #18](https://github.com/pragmagic/vscode-nim/pull/18)
-* Added a new nimsuggest
-* Updated buildOnSave relative to tasks.json
-* Fixed [Multiline comments syntax highlight.](https://github.com/pragmagic/vscode-nim/issues/11)
-* Minor improvements and stability fixes 
+ChangeLog is located [here](https://github.com/pragmagic/vscode-nim/blob/master/CHANGELOG.md)
 
-### 0.5.2
-* Added multiple projects support
-* Fixed some hangs during indexing 
-
-### 0.5.1
-* Fixed #12 - Cannot compile nimsuggest 
-
-### 0.5
-* Refactored nimsuggest interaction to use EPC mode, removed nimble requirements
-* Added info with qualified name for hovered element
-* Improved suggest information
-
-### 0.4.10
-* Added test project support
-* Improved nim check error parsing for macros and templates
-
-### 0.4.9
-* Improved database indexes
-* Fixed multiline error in nim check
-* Fixed nimsuggest problem with mixed case path in windows
-
-### 0.4.6
-* Fixed #9 - nimsuggest "attacks" (one process per nim file in workspace)
-* Added type index persistence with NeDB
-
-### 0.4.4
-* Fixed #7 - Block comments / inline comments are not supported
-* Fixed #8 - Terrible experience with clean install w/o nimsuggest
-
-### 0.4.3
-* Added workspace symbol search support 
-* Rewrote nimsuggest handling to use TCP mode
-* Added `nim.licenseString` for inserting default header in new nim files
-* Updated `run project` command to run single file in non project mode 
