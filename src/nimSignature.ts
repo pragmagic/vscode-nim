@@ -93,7 +93,7 @@ export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
               signature.parameters.push(new vscode.ParameterInformation(parameter));
             });
 
-            if (item.names[0] == identBeforeDot)
+            if (item.names[0] == identBeforeDot || item.path.search("/" + identBeforeDot + "/") != -1 || item.path.search("\\\\" + identBeforeDot + "\\\\") != -1)
               isModule++;
 
             signatures.signatures.push(signature);
