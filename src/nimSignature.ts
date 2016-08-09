@@ -63,8 +63,6 @@ export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
           identBeforeDot = line.substring(start, dotPosition);
         }
       }
-      console.log(identBeforeDot + " " + currentArgument);
-
 
       execNimSuggest(NimSuggestType.con, filename, position.line + 1, position.character - 1, getDirtyFile(document))
         .then(items => {
@@ -76,13 +74,26 @@ export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
           items.forEach(item => {
             var signature = new vscode.SignatureInformation(item.type, item.documentation);
 
-            var signatureCutDown = /(proc|macro|template) \((([\w.]+: [\w.,;\[\] ]+([,;] )?)*)\)/.exec(item.type);
+            var genericsCleanType = "";
+            {
+              var insideGeneric = 0;
+              for (var i = 0; i < item.type.length; i++) {
+                if (item.type[i] == "[")
+                  insideGeneric++;
+                if (!insideGeneric)
+                  genericsCleanType += item.type[i];
+                if (item.type[i] == "]")
+                  insideGeneric--;
+              }
+            }
+
+            var signatureCutDown = /(proc|macro|template) \((.+: .+)*\)/.exec(genericsCleanType);
             var parameters = signatureCutDown[2].split(", ");
             parameters.forEach(parameter => {
               signature.parameters.push(new vscode.ParameterInformation(parameter));
             });
 
-            if (item.names[0] == identBeforeDot)
+            if (item.names[0] == identBeforeDot || item.path.search("/" + identBeforeDot + "/") != -1 || item.path.search("\\\\" + identBeforeDot + "\\\\") != -1)
               isModule++;
 
             signatures.signatures.push(signature);
