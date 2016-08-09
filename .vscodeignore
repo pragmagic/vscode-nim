@@ -1,5 +1,7 @@
 .vscode/**
-nimsuggest/**
+nimsuggest/nimcache/**
+nimsuggest/nimsuggest.exe
+nimsuggest/nimsuggest
 typings/**
 out/test/**
 test/**
