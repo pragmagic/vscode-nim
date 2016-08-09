@@ -53,11 +53,11 @@ export function activate(ctx: vscode.ExtensionContext): void {
                 });
             }
         }
-       indexer.addWorkspaceFile(uri.fsPath);
+       //indexer.addWorkspaceFile(uri.fsPath);
     });
 
-    fileWatcher.onDidChange(uri => indexer.changeWorkspaceFile(uri.fsPath));
-    fileWatcher.onDidDelete(uri => indexer.removeWorkspaceFile(uri.fsPath));
+    //fileWatcher.onDidChange(uri => indexer.changeWorkspaceFile(uri.fsPath));
+    //fileWatcher.onDidDelete(uri => indexer.removeWorkspaceFile(uri.fsPath));
     
     ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(new NimWorkspaceSymbolProvider()));
 

@@ -22,7 +22,7 @@ class NimSuggestProcessDescription {
     rpc: elrpc.RPCServer;
 }
 
-let NIM_SUGGEST_TIMEOUT = 10000;
+let NIM_SUGGEST_TIMEOUT = 100000;
 
 let nimSuggestProcessCache: { [project: string]: NimSuggestProcessDescription } = {};
 var _nimSuggestPath: string = undefined;

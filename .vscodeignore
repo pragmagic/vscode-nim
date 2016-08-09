@@ -1,9 +1,11 @@
 .vscode/**
+nimsuggest/**
 typings/**
 out/test/**
 test/**
 src/**
 **/*.map
+*.db
 .gitignore
 tsconfig.json
 

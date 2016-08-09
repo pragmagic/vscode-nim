@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.5.7 (1 Aug 2016)
+* Minor fixes for the signature provider [PR #22](https://github.com/pragmagic/vscode-nim/pull/22)
+* Temporary disabled reindex on file change due leak of nimsuggest
+
 ## 0.5.5 (1 Aug 2016)
 * Added support for parameter hints [PR #19](https://github.com/pragmagic/vscode-nim/pull/19)
 
