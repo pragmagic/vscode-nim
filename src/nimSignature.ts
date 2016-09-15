@@ -33,8 +33,10 @@ export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
           cursorX--;
 
           if (cursorX < 0) {
-            if (cursorY - 1 < 0)
-              break;
+            if (cursorY - 1 < 0) {
+              resolve(null);
+              return;
+            }
             line = lines[--cursorY];
           }
         }
