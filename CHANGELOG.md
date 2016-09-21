@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 0.5.9 (21 Sep 2016)
+
+* Fixed nim check often hangs and doesn't get killed [#23](https://github.com/pragmagic/vscode-nim/issues/23)
+* Fixed signature suggestion wrong behavior [#21](https://github.com/pragmagic/vscode-nim/issues/21)
+
 ## 0.5.7 (1 Aug 2016)
 * Minor fixes for the signature provider [PR #22](https://github.com/pragmagic/vscode-nim/pull/22)
 * Temporary disabled reindex on file change due leak of nimsuggest
