@@ -21,31 +21,53 @@ export interface ICheckResult {
     severity: string;
 }
 
-function nimExec(command: string, args: string[], useStdErr: boolean, printToOutput: boolean, callback: (string) => any) {
+let executors: { [project: string]: cp.ChildProcess; } = {};
+
+function nimExec(project: string, command: string, args: string[], useStdErr: boolean, callback: (string) => any) {
     return new Promise((resolve, reject) => {
         if (!getNimExecPath()) {
             return resolve([]);
         }
         var cwd = vscode.workspace.rootPath;
-        cp.execFile(getNimExecPath(), [command, ...args], { cwd: cwd }, (err, stdout, stderr) => {
-            try {
-                if (err && (<any>err).code == "ENOENT") {
-                    vscode.window.showInformationMessage("No 'nim' binary could be found in PATH: '" + process.env["PATH"] + "'");
-                    return resolve([]);
-                }
-                var out = (useStdErr ? stderr : stdout).toString();
-                var ret = callback(out.split(os.EOL));
-                if (err && printToOutput) {
-                    var outputWindow = vscode.window.createOutputChannel("Nim Output");
-                    outputWindow.append(stderr.toString());
-                    outputWindow.append(stdout.toString());
-                    outputWindow.show();
-                }
-                resolve(ret);
-            } catch (e) {
-                reject(e);
+        
+        if (executors[project]) {
+            executors[project].kill('SIGKILL');
+            executors[project] = null;
+        }
+
+        let executor = cp.spawn(getNimExecPath(), [command, ...args], { cwd: cwd });
+        executors[project] = executor;
+        executor.on("error", (err) => {
+            if (err && (<any>err).code == "ENOENT") {
+                vscode.window.showInformationMessage("No 'nim' binary could be found in PATH: '" + process.env["PATH"] + "'");
+                return resolve([]);
             }
         });
+
+        var out = "";
+        executor.on("exit", (code, signal) => {
+            executors[project] = null;
+            if (signal == 'SIGKILL') {
+                resolve([]);
+            } else {
+                try {
+                    var ret = callback(out.split(os.EOL));
+                    resolve(ret);
+                } catch (e) {
+                    reject(e);
+                }
+            }
+        });
+        
+        if (useStdErr) {
+            executor.stderr.on("data", (data) => {
+                out += data.toString();
+            });
+        } else {
+            executor.stdout.on("data", (data) => {
+                out += data.toString();
+            });
+        }
     });
 }
 
@@ -92,10 +114,10 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
 
     if (!!nimConfig['lintOnSave']) {
         if (!isProjectMode()) {
-            runningToolsPromises.push(nimExec("check", ['--listFullPaths', getProjectFile(filename)], true, false, parseErrors));
+            runningToolsPromises.push(nimExec(getProjectFile(filename), "check", ['--listFullPaths', getProjectFile(filename)], true, parseErrors));
         } else {
             getProjects().forEach(project => {
-                runningToolsPromises.push(nimExec("check", ['--listFullPaths', project], true, false, parseErrors));
+                runningToolsPromises.push(nimExec(project, "check", ['--listFullPaths', project], true, parseErrors));
             });
         }
     }
