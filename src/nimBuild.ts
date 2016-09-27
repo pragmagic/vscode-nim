@@ -48,7 +48,7 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
         executor.on("exit", (code, signal) => {
             executors[project] = null;
             if (signal == 'SIGKILL') {
-                resolve([]);
+                reject([]);
             } else {
                 try {
                     var ret = callback(out.split(os.EOL));

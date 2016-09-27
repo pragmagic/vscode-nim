@@ -120,7 +120,9 @@ function runCheck(document: vscode.TextDocument) {
 		});
 		diagnosticCollection.set(entries);
     }).catch(err => {
-        vscode.window.showInformationMessage("Error: " + err);
+        if (err && err.length() > 0) {
+            vscode.window.showInformationMessage("Error: " + err);
+        }
     });
 }
 
