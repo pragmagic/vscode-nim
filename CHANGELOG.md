@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.5.11 (23 Oct 2016)
+
+* Fixed nim check multiline result parsing
+
 ## 0.5.9 (21 Sep 2016)
 
 * Fixed nim check often hangs and doesn't get killed [#23](https://github.com/pragmagic/vscode-nim/issues/23)

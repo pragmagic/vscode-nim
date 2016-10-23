@@ -94,17 +94,24 @@ function parseErrors(lines: string[]): ICheckResult[] {
                    lastFile = {file: f, column: charStr, line: lineStr};
                 }
             } else {
-                let f = getNormalizedWorkspacePath(file);
-                if (f.startsWith(vscode.workspace.rootPath)) {
-                    ret.push({ file: getNormalizedWorkspacePath(file), line: parseInt(lineStr), column: parseInt(charStr), msg: msg + os.EOL + messageText, severity });
-                } else if (lastFile.file != null) {
-                    ret.push({ file: lastFile.file, line: parseInt(lastFile.line), column: parseInt(lastFile.column), msg: msg + os.EOL + messageText, severity });
+                if (messageText != "" && ret.length > 0) {
+                    ret[ret.length - 1].msg += os.EOL + messageText;
                 }
                 messageText = "";
+                let f = getNormalizedWorkspacePath(file);
+                if (f.startsWith(vscode.workspace.rootPath)) {
+                    ret.push({ file: getNormalizedWorkspacePath(file), line: parseInt(lineStr), column: parseInt(charStr), msg: msg, severity });
+                } else if (lastFile.file != null) {
+                    ret.push({ file: lastFile.file, line: parseInt(lastFile.line), column: parseInt(lastFile.column), msg: msg, severity });
+                }
                 lastFile = {file: null, column: null, line: null};
             }
         }
     }
+    if (messageText != "" && ret.length > 0) {
+        ret[ret.length - 1].msg += os.EOL + messageText;
+    }
+
     return ret;
 }
 

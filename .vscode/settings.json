@@ -11,6 +11,6 @@
         "out": true
     },
     "editor.insertSpaces": true,
-    "editor.renderWhitespace": false,
+    "editor.renderWhitespace": "none",
     "editor.tabSize": 4
 }
