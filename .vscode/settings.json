@@ -12,5 +12,6 @@
     },
     "editor.insertSpaces": true,
     "editor.renderWhitespace": "none",
-    "editor.tabSize": 4
+    "editor.tabSize": 4,
+    "typescript.tsdk": "./node_modules/typescript/lib"
 }

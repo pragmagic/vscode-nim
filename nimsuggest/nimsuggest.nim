@@ -35,7 +35,7 @@ Options:
                           stdout instead of using sockets
   --epc                   use emacs epc mode
   --debug                 enable debug output
-  --verbose               enable verbose logging to nimsuggest.log file
+  --log                   enable verbose logging to nimsuggest.log file
   --v2                    use version 2 of the protocol; more features and
                           much faster
 
@@ -51,7 +51,7 @@ var
   gPort = 6000.Port
   gAddress = ""
   gMode: Mode
-  gVerbose = false
+  gLogging = false
 
 const
   seps = {':', ';', ' ', '\t'}
@@ -130,7 +130,7 @@ proc symFromInfo(gTrackPos: TLineInfo): PSym =
     result = m.ast.findNode
 
 proc execute(cmd: IdeCmd, file, dirtyfile: string, line, col: int) =
-  if gVerbose:
+  if gLogging:
     logStr("cmd: " & $cmd & ", file: " & file & ", dirtyFile: " & dirtyfile & "[" & $line & ":" & $col & "]")
   gIdeCmd = cmd
   if cmd == ideUse and suggestVersion != 2:
@@ -188,7 +188,7 @@ template sendEPC(results: typed, tdef, hook: untyped) =
 
   executeEPC(gIdeCmd, args)
   let res = sexp(results)
-  if gVerbose: 
+  if gLogging: 
     logStr($res)
   returnEPC(client, uid, res)
 
@@ -283,7 +283,7 @@ proc serveEpc(server: Socket) =
   var client = newSocket()
   # Wait for connection
   accept(server, client)
-  if gVerbose:
+  if gLogging:
     var it = searchPaths.head
     while it != nil:
       logStr(PStrEntry(it).data)
@@ -305,7 +305,7 @@ proc serveEpc(server: Socket) =
         uid = message[1].getNum
         args = message[3]
 
-      gIdeCmd = parseIdeCmd(message[2].getStr)
+      gIdeCmd = parseIdeCmd(message[2].getSymbol)
       case gIdeCmd
       of ideChk:
         setVerbosity(1)
@@ -390,8 +390,8 @@ proc processCmdLine*(pass: TCmdLinePass, cmd: string) =
         incl(gGlobalOptions, optIdeDebug)
       of "v2":
         suggestVersion = 2
-      of "verbose":
-        gVerbose = true
+      of "log":
+        gLogging = true
       else: processSwitch(pass, p)
     of cmdArgument:
       options.gProjectName = unixToNativePath(p.key)

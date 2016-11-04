@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.5.12 (04 Nov 2016)
+
+* Added support of bundled nimsuggest with compiler that will be available in upcoming Nim 0.15.3 release
+
 ## 0.5.11 (23 Oct 2016)
 
 * Fixed nim check multiline result parsing

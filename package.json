@@ -2,7 +2,7 @@
     "name": "nim",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code",
-    "version": "0.5.11",
+    "version": "0.5.12",
     "publisher": "kosz78",
     "author": {
         "name": "Xored Software Inc."
@@ -106,10 +106,10 @@
                     "default": true,
                     "description": "Check code by using 'nim check' on save."
                 },
-                "nim.verboseNimsuggest": {
+                "nim.logNimsuggest": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable verbose logging of nimsuggest."
+                    "description": "Enable verbose logging of nimsuggest to use profile directory."
                 }
             }
         },

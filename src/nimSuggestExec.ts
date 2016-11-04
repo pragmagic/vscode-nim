@@ -12,6 +12,7 @@ import os = require('os');
 import fs = require('fs');
 import net = require('net');
 import elrpc = require('elrpc');
+import elparser = require('elparser');
 import {prepareConfig, getProjectFile, isProjectMode, getNimExecPath, removeDirSync, correctBinname} from './nimUtils';
 import {getNormalizedWorkspacePath} from './nimIndexer';
 import {hideNimStatus, showNimStatus} from './nimStatus';
@@ -122,6 +123,12 @@ export function getNimSuggestPath(): string {
 
 export function initNimSuggest(ctx: vscode.ExtensionContext) {
     prepareConfig();
+    // let check nimsuggest related nim executable
+    let nimSuggestNewPath = path.resolve(path.dirname(getNimExecPath()), correctBinname("nimsuggest")) 
+    if (fs.existsSync(nimSuggestNewPath)) {
+        _nimSuggestPath = nimSuggestNewPath;
+        return;
+    }
     vscode.workspace.onDidChangeConfiguration(prepareConfig);
     let extensionPath = ctx.extensionPath
     var nimSuggestDir = path.resolve(extensionPath, "nimsuggest");
@@ -168,7 +175,7 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
     }
     try {
         let desc = await getNimSuggestProcess(getProjectFile(filename));
-        let ret = await desc.rpc.callMethod(NimSuggestType[suggestType], filename.replace(/\\+/g, '/'), line, column, dirtyFile);
+        let ret = await desc.rpc.callMethod(new elparser.ast.SExpSymbol(NimSuggestType[suggestType]), filename.replace(/\\+/g, '/'), line, column, dirtyFile);
         desc.timeout = new Date().getTime();
 
         var result: NimSuggestResult[] = [];
@@ -235,8 +242,8 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
             return;
         }
         var args = ['--epc', '--v2'];
-        if (!!vscode.workspace.getConfiguration('nim').get('verboseNimsuggest')) {
-            args.push('--verbose');
+        if (!!vscode.workspace.getConfiguration('nim').get('logNimsuggest')) {
+            args.push('--log');
         }
         args.push(nimProject);
         let process = cp.spawn(getNimSuggestPath(), args, { cwd: vscode.workspace.rootPath });
