@@ -183,20 +183,26 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
 
         var result: NimSuggestResult[] = [];
         if (ret != null) {
-            for (var i = 0; i < ret.length; i++) {
-                var parts = ret[i];
-                if (parts.length >= 8) {
-                    var item = new NimSuggestResult();
-                    item.answerType = parts[0];
-                    item.suggest = parts[1];
-                    item.names = parts[2];
-                    item.path = parts[3].replace(/\\,\\/g, '\\');
-                    item.type = parts[4];
-                    item.line = parts[5];
-                    item.column = parts[6];
-                    item.documentation = parts[7];
-                    result.push(item);
+            if (ret instanceof Array) {
+                for (var i = 0; i < ret.length; i++) {
+                    var parts = ret[i];
+                    if (parts.length >= 8) {
+                        var item = new NimSuggestResult();
+                        item.answerType = parts[0];
+                        item.suggest = parts[1];
+                        item.names = parts[2];
+                        item.path = parts[3].replace(/\\,\\/g, '\\');
+                        item.type = parts[4];
+                        item.line = parts[5];
+                        item.column = parts[6];
+                        item.documentation = parts[7];
+                        result.push(item);
+                    }
                 }
+            } else {
+                var item = new NimSuggestResult();
+                item.suggest = "" + ret;
+                result.push(item);
             }
         }
         if (!isProjectMode() && vscode.window.visibleTextEditors.every(
