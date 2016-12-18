@@ -45,10 +45,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 * `nim.project` - optional array of projects file, if nim.project not defined then all nim files will be used as separate project
 * `nim.licenseString` - optional license text that will be inserted on nim file creation 
 
-### Commands
-The following commands are provided by the extension:
 
-* `Nim: Run selected file` - compile and run selected file, it uses `c` compiler by default, but you can specify `cpp` in `nim.buildCommand` config parameter. This command available from file context menu or by `F6` keyboard shortcut
 #### Example
 
 ```json
@@ -60,6 +57,11 @@ The following commands are provided by the extension:
 	"nim.licenseString": "# Copyright 2016.\n\n"
 }
 ```
+
+### Commands
+The following commands are provided by the extension:
+
+* `Nim: Run selected file` - compile and run selected file, it uses `c` compiler by default, but you can specify `cpp` in `nim.buildCommand` config parameter. This command available from file context menu or by `F6` keyboard shortcut
 
 ## TODO
 
