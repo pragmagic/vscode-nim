@@ -14,18 +14,18 @@ import { getNormalizedWorkspacePath } from './nimIndexer'
 export class NimReferenceProvider implements vscode.ReferenceProvider {
 
   public provideReferences(document: vscode.TextDocument, position: vscode.Position, options: { includeDeclaration: boolean }, token: vscode.CancellationToken): Thenable<vscode.Location[]> {
-    return vscode.workspace.saveAll(false).then(() => {
-      return new Promise((resolve, reject) => {
-        execNimSuggest(NimSuggestType.use, document.fileName, position.line + 1, position.character, getDirtyFile(document))
-          .then(result => {
-            var references = [];
-            result.forEach(item => {
-              references.push(item.location);
+    return new Promise((resolve, reject) => {
+      vscode.workspace.saveAll(false).then(() => {
+          execNimSuggest(NimSuggestType.use, document.fileName, position.line + 1, position.character, getDirtyFile(document))
+            .then(result => {
+              var references = [];
+              result.forEach(item => {
+                references.push(item.location);
+              })
+              resolve(references);
             })
-            resolve(references);
-          })
-          .catch(reason => reject(reason));
-      });
+            .catch(reason => reject(reason));
+        });
     });
   }
 }

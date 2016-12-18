@@ -112,8 +112,12 @@ export class NimSuggestResult {
         return this.names ? this.names[this.names.length - 1] : '';
     }
 
-    get container(): string {
+    get moduleName(): string {
         return this.names ? this.names[0] : '';
+    }
+
+    get containerName(): string {
+        return this.names ? this.names.slice(0, this.names.length - 1).join('.') : '';
     }
 }
 

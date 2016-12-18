@@ -111,18 +111,21 @@ export function getFileSymbols(file: string, dirtyFile?: string): Promise<vscode
         execNimSuggest(NimSuggestType.outline, file, 0, 0, dirtyFile)
             .then(result => {
                 var symbols = [];
+                var exists = [];
                 result.forEach(item => {
 
                     // skip let and var in proc and methods
-                    if ((item.suggest === "skLet" || item.suggest === "skVar") && item.container.indexOf('.') > 0) {
+                    if ((item.suggest === "skLet" || item.suggest === "skVar") && item.containerName.indexOf('.') > 0) {
                         return;
                     }
 
-                    let symbolInfo = new vscode.SymbolInformation(
-                        item.symbolName, vscodeKindFromNimSym(item.suggest),
-                        item.range, item.uri, item.container);
-
-                    symbols.push(symbolInfo);
+                    if (exists.indexOf(item.column + ":" + item.line) == -1) {
+                        exists.push(item.column + ":" + item.line);
+                        let symbolInfo = new vscode.SymbolInformation(
+                            item.symbolName, vscodeKindFromNimSym(item.suggest),
+                            item.range, item.uri, item.containerName);
+                        symbols.push(symbolInfo);
+                    }
                 });
 
                 resolve(symbols);

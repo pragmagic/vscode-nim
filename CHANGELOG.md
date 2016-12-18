@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.5.13 (18 Dec 2016)
+* Added "Nim: Run file" command that run selected file with `F6` keyboard shortcut
+* Fixed "Provide more details in symbols window" [#27](https://github.com/pragmagic/vscode-nim/issues/27)
+
 ## 0.5.12 (04 Nov 2016)
 
 * Added support of bundled nimsuggest with compiler that will be available in upcoming Nim 0.15.3 release

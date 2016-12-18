@@ -2,7 +2,7 @@
     "name": "nim",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code",
-    "version": "0.5.12",
+    "version": "0.5.13",
     "publisher": "kosz78",
     "author": {
         "name": "Xored Software Inc."
@@ -26,8 +26,8 @@
         "url": "https://github.com/pragmagic/vscode-nim/issues"
 	},
     "scripts": {
-        "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-        "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -watch -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
@@ -35,11 +35,14 @@
         "elrpc": "0.1.0"
     },
     "devDependencies": {
-        "typescript": "^1.8.10",
-        "vscode": "^0.11.x"
+        "typescript": "^2.0.3",
+        "vscode": "^1.0.0",
+        "mocha": "^2.3.3",
+        "@types/node": "^6.0.40",
+        "@types/mocha": "^2.2.32"
     },
     "engines": {
-        "vscode": "^1.0.0"
+        "vscode": "^1.7.0"
     },
     "activationEvents": [
         "onLanguage:nim",
@@ -75,6 +78,26 @@
                 "language": "nimble",
                 "scopeName": "source.nimble",
                 "path": "./syntaxes/nimble.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "nim.run.file",
+                "title": "Nim: Run selected file"
+            }
+        ],
+        "menus": {
+            "editor/context": [{
+                "when": "resourceLangId == nim",
+                "command": "nim.run.file",
+                "group": "run@1"
+            }]
+        },
+        "keybindings": [
+            {
+                "key": "F6",
+                "command": "nim.run.file",
+                "when": "resourceLangId == nim"
             }
         ],
         "configuration": {

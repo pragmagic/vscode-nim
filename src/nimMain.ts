@@ -22,7 +22,8 @@ import { showHideStatus } from './nimStatus'
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
- 
+var terminal: vscode.Terminal;
+
 export function activate(ctx: vscode.ExtensionContext): void {
     initNimSuggest(ctx);
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
@@ -33,8 +34,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
     ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
     diagnosticCollection = vscode.languages.createDiagnosticCollection('nim');
     ctx.subscriptions.push(diagnosticCollection);
-    
+
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
+
+    vscode.commands.registerCommand("nim.run.file", runFile);
 
     console.log(ctx.extensionPath);
     indexer.initWorkspace(ctx.extensionPath);
@@ -53,12 +56,12 @@ export function activate(ctx: vscode.ExtensionContext): void {
                 });
             }
         }
-       //indexer.addWorkspaceFile(uri.fsPath);
+        //indexer.addWorkspaceFile(uri.fsPath);
     });
 
     //fileWatcher.onDidChange(uri => indexer.changeWorkspaceFile(uri.fsPath));
     //fileWatcher.onDidDelete(uri => indexer.removeWorkspaceFile(uri.fsPath));
-    
+
     ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(new NimWorkspaceSymbolProvider()));
 
     startBuildOnSaveWatcher(ctx.subscriptions);
@@ -113,12 +116,12 @@ function runCheck(document: vscode.TextDocument) {
                 err[error.file + error.line + error.column + error.msg] = true
             }
         });
-        
+
         let entries: [vscode.Uri, vscode.Diagnostic[]][] = [];
-		diagnosticMap.forEach((diags, uri) => {
+        diagnosticMap.forEach((diags, uri) => {
             entries.push([vscode.Uri.file(uri), diags]);
-		});
-		diagnosticCollection.set(entries);
+        });
+        diagnosticCollection.set(entries);
     }).catch(err => {
         if (err && err.length() > 0) {
             vscode.window.showInformationMessage("Error: " + err);
@@ -133,7 +136,19 @@ function startBuildOnSaveWatcher(subscriptions: vscode.Disposable[]) {
         }
         runCheck(document);
         if (!!vscode.workspace.getConfiguration('nim')['buildOnSave']) {
-           vscode.commands.executeCommand("workbench.action.tasks.build");
+            vscode.commands.executeCommand("workbench.action.tasks.build");
         }
     }, null, subscriptions);
+}
+
+function runFile() {
+    let editor = vscode.window.activeTextEditor
+    if (editor) {
+        if (!terminal) {
+            terminal = vscode.window.createTerminal("Nim");
+        }
+        terminal.show(true);
+        terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
+            ' -r ' + editor.document.fileName, true);
+    }
 }
