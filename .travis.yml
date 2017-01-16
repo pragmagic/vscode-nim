@@ -7,5 +7,6 @@ install:
   - npm run vscode:prepublish
 
 script:
+  - npm install -g tslint typescript
   - npm run lint
   - npm test --silent
