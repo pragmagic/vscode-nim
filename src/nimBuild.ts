@@ -10,8 +10,7 @@ import cp = require('child_process');
 import path = require('path');
 import os = require('os');
 import fs = require('fs');
-import { getNimExecPath, getProjectFile, getProjects, isProjectMode } from './nimUtils'
-import { getNormalizedWorkspacePath } from './nimIndexer';
+import { getNimExecPath, getProjectFile, getProjects, isProjectMode } from './nimUtils';
 
 export interface ICheckResult {
     file: string;
@@ -23,13 +22,13 @@ export interface ICheckResult {
 
 let executors: { [project: string]: cp.ChildProcess; } = {};
 
-function nimExec(project: string, command: string, args: string[], useStdErr: boolean, callback: (string) => any) {
+function nimExec(project: string, command: string, args: string[], useStdErr: boolean, callback: (lines: string[]) => any) {
     return new Promise((resolve, reject) => {
         if (!getNimExecPath()) {
             return resolve([]);
         }
         var cwd = vscode.workspace.rootPath;
-        
+
         if (executors[project]) {
             executors[project].kill('SIGKILL');
             executors[project] = null;
@@ -37,17 +36,17 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
 
         let executor = cp.spawn(getNimExecPath(), [command, ...args], { cwd: cwd });
         executors[project] = executor;
-        executor.on("error", (err) => {
-            if (err && (<any>err).code == "ENOENT") {
-                vscode.window.showInformationMessage("No 'nim' binary could be found in PATH: '" + process.env["PATH"] + "'");
+        executor.on('error', (err) => {
+            if (err && (<any>err).code === 'ENOENT') {
+                vscode.window.showInformationMessage('No \'nim\' binary could be found in PATH: \'' + process.env['PATH'] + '\'');
                 return resolve([]);
             }
         });
 
-        var out = "";
-        executor.on("exit", (code, signal) => {
+        var out = '';
+        executor.on('exit', (code, signal) => {
             executors[project] = null;
-            if (signal == 'SIGKILL') {
+            if (signal === 'SIGKILL') {
                 reject([]);
             } else {
                 try {
@@ -58,13 +57,13 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
                 }
             }
         });
-        
+
         if (useStdErr) {
-            executor.stderr.on("data", (data) => {
+            executor.stderr.on('data', (data) => {
                 out += data.toString();
             });
         } else {
-            executor.stdout.on("data", (data) => {
+            executor.stdout.on('data', (data) => {
                 out += data.toString();
             });
         }
@@ -73,34 +72,32 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
 
 function parseErrors(lines: string[]): ICheckResult[] {
     var ret: ICheckResult[] = [];
-    var templateError: boolean = false; 
-    var messageText = "";
+    var templateError: boolean = false;
+    var messageText = '';
     var lastFile = {file: null, column: null, line: null};
     for (var i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
-        if (line.startsWith("Hint:")) {
+        if (line.startsWith('Hint:')) {
             continue;
         }
-        var match = /^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)/.exec(line);
+        let match = /^([^(]*)?\((\d+)(,\s(\d+))?\)( (\w+):)? (.*)/.exec(line);
         if (!match) {
             if (messageText.length < 1024) {
                 messageText += os.EOL + line;
             }
-        } else { 
-            var [_, file, lineStr, _, charStr, _, severity, msg] = match;
-            if (msg === "template/generic instantiation from here") {
-                let f = getNormalizedWorkspacePath(file);
-                if (f.startsWith(vscode.workspace.rootPath)) {
-                   lastFile = {file: f, column: charStr, line: lineStr};
+        } else {
+            let [_, file, lineStr, charStrRaw_, charStr, severityRaw, severity, msg] = match;
+            if (msg === 'template/generic instantiation from here') {
+                if (file.toLowerCase().startsWith(vscode.workspace.rootPath.toLowerCase())) {
+                   lastFile = {file: file, column: charStr, line: lineStr};
                 }
             } else {
-                if (messageText != "" && ret.length > 0) {
+                if (messageText !== '' && ret.length > 0) {
                     ret[ret.length - 1].msg += os.EOL + messageText;
                 }
-                messageText = "";
-                let f = getNormalizedWorkspacePath(file);
-                if (f.startsWith(vscode.workspace.rootPath)) {
-                    ret.push({ file: getNormalizedWorkspacePath(file), line: parseInt(lineStr), column: parseInt(charStr), msg: msg, severity });
+                messageText = '';
+                if (file.toLowerCase().startsWith(vscode.workspace.rootPath.toLowerCase())) {
+                    ret.push({ file: file, line: parseInt(lineStr), column: parseInt(charStr), msg: msg, severity });
                 } else if (lastFile.file != null) {
                     ret.push({ file: lastFile.file, line: parseInt(lastFile.line), column: parseInt(lastFile.column), msg: msg, severity });
                 }
@@ -108,7 +105,7 @@ function parseErrors(lines: string[]): ICheckResult[] {
             }
         }
     }
-    if (messageText != "" && ret.length > 0) {
+    if (messageText !== '' && ret.length > 0) {
         ret[ret.length - 1].msg += os.EOL + messageText;
     }
 
@@ -121,10 +118,10 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
 
     if (!!nimConfig['lintOnSave']) {
         if (!isProjectMode()) {
-            runningToolsPromises.push(nimExec(getProjectFile(filename), "check", ['--listFullPaths', getProjectFile(filename)], true, parseErrors));
+            runningToolsPromises.push(nimExec(getProjectFile(filename), 'check', ['--listFullPaths', getProjectFile(filename)], true, parseErrors));
         } else {
             getProjects().forEach(project => {
-                runningToolsPromises.push(nimExec(project, "check", ['--listFullPaths', project], true, parseErrors));
+                runningToolsPromises.push(nimExec(project, 'check', ['--listFullPaths', project], true, parseErrors));
             });
         }
     }

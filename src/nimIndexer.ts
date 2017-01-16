@@ -10,10 +10,9 @@ import Datastore = require('nedb');
 import path = require('path');
 import fs = require('fs');
 
-import { getNimSuggestPath, execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec'
-import { showNimProgress, hideNimProgress, updateNimProgress } from './nimStatus'
+import { getNimSuggestPath, execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec';
+import { showNimProgress, hideNimProgress, updateNimProgress } from './nimStatus';
 
-let pathCache: { [tool: string]: string; } = {};
 let dbVersion: number = 4;
 
 var dbFiles: Datastore;
@@ -25,17 +24,11 @@ var dbTypes: Datastore;
  * because nim compiler on windows system returns all pathes converted in lowercase.
  * @param file lowercase workspace path
  */
-export function getNormalizedWorkspacePath(file: string): string {
-    return (process.platform === 'win32' && pathCache[file]) || file;
-}
-
 export function addWorkspaceFile(file: string): void {
-    pathCache[file.toLowerCase()] = file;
     indexFile(file);
 }
 
 export function removeWorkspaceFile(file: string): void {
-    pathCache[file.toLowerCase()] = null;
     removeFromIndex(file);
 }
 
@@ -60,14 +53,11 @@ export async function initWorkspace(extensionPath: string): Promise<void> {
     dbFiles.ensureIndex({ fieldName: 'file' });
     dbFiles.ensureIndex({ fieldName: 'timestamp' });
 
-    vscode.workspace.findFiles("**/*.nim", "")
-        .then(urls => urls.forEach(url => pathCache[url.fsPath.toLowerCase()] = url.fsPath));
-
     if (!getNimSuggestPath()) {
         return;
     }
-    
-    let urls = await vscode.workspace.findFiles("**/*.nim", "");
+
+    let urls = await vscode.workspace.findFiles('**/*.nim', '');
 
     showNimProgress(`Indexing: ${urls.length}`);
     for (var i = 0; i < urls.length; i++) {
@@ -75,10 +65,10 @@ export async function initWorkspace(extensionPath: string): Promise<void> {
         let file = url.fsPath;
         let cnt = urls.length - i;
 
-        if (cnt % 10 == 0) {
+        if (cnt % 10 === 0) {
             updateNimProgress(`Indexing: ${cnt} of ${urls.length}`);
         }
-        
+
         await indexFile(file);
     }
     hideNimProgress();
@@ -115,12 +105,12 @@ export function getFileSymbols(file: string, dirtyFile?: string): Promise<vscode
                 result.forEach(item => {
 
                     // skip let and var in proc and methods
-                    if ((item.suggest === "skLet" || item.suggest === "skVar") && item.containerName.indexOf('.') > 0) {
+                    if ((item.suggest === 'skLet' || item.suggest === 'skVar') && item.containerName.indexOf('.') > 0) {
                         return;
                     }
 
-                    if (exists.indexOf(item.column + ":" + item.line) == -1) {
-                        exists.push(item.column + ":" + item.line);
+                    if (exists.indexOf(item.column + ':' + item.line) === -1) {
+                        exists.push(item.column + ':' + item.line);
                         let symbolInfo = new vscode.SymbolInformation(
                             item.symbolName, vscodeKindFromNimSym(item.suggest),
                             item.range, item.uri, item.containerName);
@@ -142,9 +132,9 @@ async function findFile(file: string, timestamp: number): Promise<any> {
 
 async function indexFile(file: string): Promise<void> {
     let timestamp = fs.statSync(file).mtime.getTime();
-    let doc = await findFile(file, timestamp)
+    let doc = await findFile(file, timestamp);
     if (!doc) {
-        //console.log("index: " + file);
+        // console.log("index: " + file);
         let infos = await getFileSymbols(file, null);
         if (infos && infos.length > 0) {
             dbFiles.remove({ file: file }, { multi: true }, (err, n) => {
@@ -154,7 +144,7 @@ async function indexFile(file: string): Promise<void> {
                 infos.forEach((value) => {
                     dbTypes.insert({
                         ws: vscode.workspace.rootPath,
-                        file: getNormalizedWorkspacePath(value.location.uri.fsPath),
+                        file: value.location.uri.fsPath,
                         range_start: value.location.range.start,
                         range_end: value.location.range.end,
                         type: value.name,
@@ -170,33 +160,33 @@ async function indexFile(file: string): Promise<void> {
 
 function vscodeKindFromNimSym(kind: string): vscode.SymbolKind {
     switch (kind) {
-        case "skConst":
+        case 'skConst':
             return vscode.SymbolKind.Constant;
-        case "skEnumField":
+        case 'skEnumField':
             return vscode.SymbolKind.Enum;
-        case "skForVar":
+        case 'skForVar':
             return vscode.SymbolKind.Variable;
-        case "skIterator":
+        case 'skIterator':
             return vscode.SymbolKind.Array;
-        case "skLabel":
+        case 'skLabel':
             return vscode.SymbolKind.String;
-        case "skLet":
+        case 'skLet':
             return vscode.SymbolKind.Variable;
-        case "skMacro":
+        case 'skMacro':
             return vscode.SymbolKind.Function;
-        case "skMethod":
+        case 'skMethod':
             return vscode.SymbolKind.Method;
-        case "skParam":
+        case 'skParam':
             return vscode.SymbolKind.Variable;
-        case "skProc":
+        case 'skProc':
             return vscode.SymbolKind.Function;
-        case "skResult":
+        case 'skResult':
             return vscode.SymbolKind.Function;
-        case "skTemplate":
+        case 'skTemplate':
             return vscode.SymbolKind.Interface;
-        case "skType":
+        case 'skType':
             return vscode.SymbolKind.Class;
-        case "skVar":
+        case 'skVar':
             return vscode.SymbolKind.Variable;
     }
     return vscode.SymbolKind.Property;

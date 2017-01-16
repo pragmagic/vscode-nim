@@ -10,8 +10,8 @@ import Datastore = require('nedb');
 import path = require('path');
 import fs = require('fs');
 
-import { getDirtyFile } from './nimUtils'
-import { getFileSymbols, findWorkspaceSymbols } from './nimIndexer'
+import { getDirtyFile } from './nimUtils';
+import { getFileSymbols, findWorkspaceSymbols } from './nimIndexer';
 
 export class NimWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
     private workspaceSymbols: { [file: string]: vscode.SymbolInformation[]; } = {};

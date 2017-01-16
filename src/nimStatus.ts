@@ -5,7 +5,7 @@
 
 'use strict';
 
-import { NIM_MODE } from './nimMode'
+import { NIM_MODE } from './nimMode';
 import vscode = require('vscode');
 
 let statusBarEntry: vscode.StatusBarItem;

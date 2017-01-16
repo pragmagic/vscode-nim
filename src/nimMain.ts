@@ -7,6 +7,7 @@
 
 import vscode = require('vscode');
 import fs = require('fs');
+import path = require('path');
 
 import { initNimSuggest, closeAllNimSuggestProcesses, closeNimSuggestProcess } from './nimSuggestExec';
 import { NimCompletionItemProvider } from './nimSuggest';
@@ -17,8 +18,9 @@ import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutl
 import * as indexer from './nimIndexer';
 import { NimSignatureHelpProvider } from './nimSignature';
 import { check, ICheckResult } from './nimBuild';
-import { NIM_MODE } from './nimMode'
-import { showHideStatus } from './nimStatus'
+import { NIM_MODE } from './nimMode';
+import { showHideStatus } from './nimStatus';
+import { getDirtyFile } from './nimUtils';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
@@ -37,11 +39,16 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
 
-    vscode.commands.registerCommand("nim.run.file", runFile);
+    vscode.commands.registerCommand('nim.run.file', runFile);
+    vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
+        if (terminal && e.processId === terminal.processId) {
+            terminal = null;
+        }
+    });
 
     console.log(ctx.extensionPath);
     indexer.initWorkspace(ctx.extensionPath);
-    fileWatcher = vscode.workspace.createFileSystemWatcher("**/*.nim");
+    fileWatcher = vscode.workspace.createFileSystemWatcher('**/*.nim');
     fileWatcher.onDidCreate((uri) => {
         let config = vscode.workspace.getConfiguration('nim');
         if (config.has('licenseString')) {
@@ -49,18 +56,18 @@ export function activate(ctx: vscode.ExtensionContext): void {
             if (path.endsWith('.nim') || path.endsWith('.nims')) {
                 fs.stat(uri.fsPath, (err, stats) => {
                     if (stats && stats.size === 0) {
-                        var edit = new vscode.WorkspaceEdit();
+                        let edit = new vscode.WorkspaceEdit();
                         edit.insert(uri, new vscode.Position(0, 0), config['licenseString']);
                         vscode.workspace.applyEdit(edit);
                     }
                 });
             }
         }
-        //indexer.addWorkspaceFile(uri.fsPath);
+        // indexer.addWorkspaceFile(uri.fsPath);
     });
 
-    //fileWatcher.onDidChange(uri => indexer.changeWorkspaceFile(uri.fsPath));
-    //fileWatcher.onDidDelete(uri => indexer.removeWorkspaceFile(uri.fsPath));
+    // fileWatcher.onDidChange(uri => indexer.changeWorkspaceFile(uri.fsPath));
+    // fileWatcher.onDidDelete(uri => indexer.removeWorkspaceFile(uri.fsPath));
 
     ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(new NimWorkspaceSymbolProvider()));
 
@@ -81,14 +88,14 @@ function runCheck(document: vscode.TextDocument) {
 
     function mapSeverityToVSCodeSeverity(sev: string) {
         switch (sev) {
-            case "Hint": return vscode.DiagnosticSeverity.Warning;
-            case "Error": return vscode.DiagnosticSeverity.Error;
-            case "Warning": return vscode.DiagnosticSeverity.Warning;
+            case 'Hint': return vscode.DiagnosticSeverity.Warning;
+            case 'Error': return vscode.DiagnosticSeverity.Error;
+            case 'Warning': return vscode.DiagnosticSeverity.Warning;
             default: return vscode.DiagnosticSeverity.Error;
         }
     }
 
-    if (document.languageId != 'nim') {
+    if (document.languageId !== 'nim') {
         return;
     }
 
@@ -102,8 +109,8 @@ function runCheck(document: vscode.TextDocument) {
             if (!err[error.file + error.line + error.column + error.msg]) {
                 let targetUri = error.file;
                 let endColumn = error.column;
-                if (error.msg.indexOf("'") >= 0) {
-                    endColumn += error.msg.lastIndexOf("'") - error.msg.indexOf("'") - 2;
+                if (error.msg.indexOf('\'') >= 0) {
+                    endColumn += error.msg.lastIndexOf('\'') - error.msg.indexOf('\'') - 2;
                 }
                 let range = new vscode.Range(error.line - 1, error.column - 1, error.line - 1, endColumn);
                 let diagnostic = new vscode.Diagnostic(range, error.msg, mapSeverityToVSCodeSeverity(error.severity));
@@ -113,7 +120,7 @@ function runCheck(document: vscode.TextDocument) {
                 }
                 diagnosticMap.set(targetUri, diagnostics);
                 diagnostics.push(diagnostic);
-                err[error.file + error.line + error.column + error.msg] = true
+                err[error.file + error.line + error.column + error.msg] = true;
             }
         });
 
@@ -124,31 +131,36 @@ function runCheck(document: vscode.TextDocument) {
         diagnosticCollection.set(entries);
     }).catch(err => {
         if (err && err.length() > 0) {
-            vscode.window.showInformationMessage("Error: " + err);
+            vscode.window.showInformationMessage('Error: ' + err);
         }
     });
 }
 
 function startBuildOnSaveWatcher(subscriptions: vscode.Disposable[]) {
     vscode.workspace.onDidSaveTextDocument(document => {
-        if (document.languageId != 'nim') {
+        if (document.languageId !== 'nim') {
             return;
         }
         runCheck(document);
         if (!!vscode.workspace.getConfiguration('nim')['buildOnSave']) {
-            vscode.commands.executeCommand("workbench.action.tasks.build");
+            vscode.commands.executeCommand('workbench.action.tasks.build');
         }
     }, null, subscriptions);
 }
 
 function runFile() {
-    let editor = vscode.window.activeTextEditor
+    let editor = vscode.window.activeTextEditor;
     if (editor) {
         if (!terminal) {
-            terminal = vscode.window.createTerminal("Nim");
+            terminal = vscode.window.createTerminal('Nim');
         }
         terminal.show(true);
-        terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-            ' -r ' + editor.document.fileName, true);
+        if (vscode.workspace.getConfiguration('nim')['runUnsaved']) {
+            terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
+                ' -r ' + getDirtyFile(editor.document), true);
+        } else {
+            terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
+                ' -r ' + editor.document.fileName, true);
+        }
     }
 }

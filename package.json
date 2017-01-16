@@ -133,6 +133,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enable verbose logging of nimsuggest to use profile directory."
+                },
+                "nim.runUnsaved": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true then F6 will run unsaved editor content."
                 }
             }
         },

@@ -6,7 +6,7 @@
 'use strict';
 
 import vscode = require('vscode');
-import { getDirtyFile } from './nimUtils'
+import { getDirtyFile } from './nimUtils';
 import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec'
 
 export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {

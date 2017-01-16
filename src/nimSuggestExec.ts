@@ -14,7 +14,6 @@ import net = require('net');
 import elrpc = require('elrpc');
 import elparser = require('elparser');
 import {prepareConfig, getProjectFile, isProjectMode, getNimExecPath, removeDirSync, correctBinname} from './nimUtils';
-import {getNormalizedWorkspacePath} from './nimIndexer';
 import {hideNimStatus, showNimStatus} from './nimStatus';
 
 class NimSuggestProcessDescription {
@@ -87,9 +86,9 @@ export class NimSuggestResult {
      * Instead you will need to parse sequences in the form \xHH, where HH 
      * is a hexadecimal value (e.g. newlines generate the sequence \x0A). */
     documentation: string;
-    
+
     get range(): vscode.Range {
-        return new vscode.Range(this.line - 1, this.column, this.line - 1, this.column)
+        return new vscode.Range(this.line - 1, this.column, this.line - 1, this.column);
     }
 
     get position(): vscode.Position {
@@ -97,7 +96,7 @@ export class NimSuggestResult {
     }
 
     get uri(): vscode.Uri {
-        return vscode.Uri.file(getNormalizedWorkspacePath(this.path))
+        return vscode.Uri.file(this.path);
     }
 
     get location(): vscode.Location {
@@ -128,24 +127,24 @@ export function getNimSuggestPath(): string {
 export function initNimSuggest(ctx: vscode.ExtensionContext) {
     prepareConfig();
     // let check nimsuggest related nim executable
-    let nimSuggestNewPath = path.resolve(path.dirname(getNimExecPath()), correctBinname("nimsuggest")) 
+    let nimSuggestNewPath = path.resolve(path.dirname(getNimExecPath()), correctBinname('nimsuggest'));
     if (fs.existsSync(nimSuggestNewPath)) {
         _nimSuggestPath = nimSuggestNewPath;
         return;
     }
     vscode.workspace.onDidChangeConfiguration(prepareConfig);
-    let extensionPath = ctx.extensionPath
-    var nimSuggestDir = path.resolve(extensionPath, "nimsuggest");
-    var nimSuggestSourceFile = path.resolve(nimSuggestDir, "nimsuggest.nim");
-    var execFile = path.resolve(nimSuggestDir, correctBinname("nimsuggest"));
-    var nimExecTimestamp = fs.statSync(getNimExecPath()).mtime.getTime()
-    var nimSuggestTimestamp = fs.statSync(nimSuggestSourceFile).mtime.getTime()
+    let extensionPath = ctx.extensionPath;
+    var nimSuggestDir = path.resolve(extensionPath, 'nimsuggest');
+    var nimSuggestSourceFile = path.resolve(nimSuggestDir, 'nimsuggest.nim');
+    var execFile = path.resolve(nimSuggestDir, correctBinname('nimsuggest'));
+    var nimExecTimestamp = fs.statSync(getNimExecPath()).mtime.getTime();
+    var nimSuggestTimestamp = fs.statSync(nimSuggestSourceFile).mtime.getTime();
 
-    if (fs.existsSync(execFile) && ctx.globalState.get('nimExecTimestamp', 0) == nimExecTimestamp && 
-        ctx.globalState.get('nimSuggestTimestamp', 0) == nimSuggestTimestamp) {
-        _nimSuggestPath = execFile; 
+    if (fs.existsSync(execFile) && ctx.globalState.get('nimExecTimestamp', 0) === nimExecTimestamp &&
+        ctx.globalState.get('nimSuggestTimestamp', 0) === nimSuggestTimestamp) {
+        _nimSuggestPath = execFile;
     } else {
-        let nimCacheDir = path.resolve(nimSuggestDir, "nimcache");
+        let nimCacheDir = path.resolve(nimSuggestDir, 'nimcache');
         if (fs.existsSync(nimCacheDir)) {
             removeDirSync(nimCacheDir);
         }
@@ -155,7 +154,7 @@ export function initNimSuggest(ctx: vscode.ExtensionContext) {
             hideNimStatus();
 
             if (error) {
-                vscode.window.showWarningMessage("Cannot compile nimsuggest. See console log for details");
+                vscode.window.showWarningMessage('Cannot compile nimsuggest. See console log for details');
                 console.log(error);
                 return;
             }
@@ -163,8 +162,8 @@ export function initNimSuggest(ctx: vscode.ExtensionContext) {
                 console.error(stderr);
             }
             _nimSuggestPath = execFile;
-            ctx.globalState.update('nimExecTimestamp', nimExecTimestamp); 
-            ctx.globalState.update('nimSuggestTimestamp', nimSuggestTimestamp); 
+            ctx.globalState.update('nimExecTimestamp', nimExecTimestamp);
+            ctx.globalState.update('nimSuggestTimestamp', nimSuggestTimestamp);
         });
     }
     setInterval(checkNimsuggestProcesses, 1000);
@@ -251,10 +250,10 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
         }
         args.push(nimProject);
         let process = cp.spawn(getNimSuggestPath(), args, { cwd: vscode.workspace.rootPath });
-        process.stdout.once("data", (data) => {
+        process.stdout.once('data', (data) => {
             elrpc.startClient(parseInt(data.toString())).then((client) => {
                 nimSuggestProcessCache[nimProject] = { process: process, timeout: new Date().getTime(), rpc: client };
-                client.socket.on("error", err => {
+                client.socket.on('error', err => {
                     closeNimSuggestProcess(nimProject);
                 });
                 resolve(nimSuggestProcessCache[nimProject]);

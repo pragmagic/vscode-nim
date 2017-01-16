@@ -6,9 +6,8 @@
 'use strict';
 
 import vscode = require('vscode');
-import { getDirtyFile } from './nimUtils'
-import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec'
-import { getNormalizedWorkspacePath } from './nimIndexer'
+import { getDirtyFile } from './nimUtils';
+import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec';
 
 
 export class NimReferenceProvider implements vscode.ReferenceProvider {
@@ -21,7 +20,7 @@ export class NimReferenceProvider implements vscode.ReferenceProvider {
               var references = [];
               result.forEach(item => {
                 references.push(item.location);
-              })
+              });
               resolve(references);
             })
             .catch(reason => reject(reason));

@@ -13,5 +13,6 @@
     "editor.insertSpaces": true,
     "editor.renderWhitespace": "none",
     "editor.tabSize": 4,
-    "typescript.tsdk": "./node_modules/typescript/lib"
+    "typescript.tsdk": "./node_modules/typescript/lib",
+    "tslint.enable": true
 }

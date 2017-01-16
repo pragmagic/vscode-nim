@@ -6,8 +6,8 @@
 'use strict';
 
 import vscode = require('vscode');
-import { getDirtyFile } from './nimUtils'
-import { execNimSuggest, NimSuggestType, NimSuggestResult } from './nimSuggestExec'
+import { getDirtyFile } from './nimUtils';
+import { execNimSuggest, NimSuggestType, NimSuggestResult } from './nimSuggestExec';
 
 export class NimCompletionItemProvider implements vscode.CompletionItemProvider {
   public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.CompletionItem[]> {
@@ -19,7 +19,7 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
           var suggestions = [];
 
           item.forEach(item => {
-            if (item.answerType === "sug") {
+            if (item.answerType === 'sug') {
               var suggestion = new vscode.CompletionItem(item.symbolName);
               suggestion.kind = vscodeKindFromNimSym(item.suggest);
               suggestion.detail = nimSymDetails(item);
@@ -35,33 +35,33 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
 
 function vscodeKindFromNimSym(kind: string): vscode.CompletionItemKind {
   switch (kind) {
-    case "skConst":
+    case 'skConst':
       return vscode.CompletionItemKind.Value;
-    case "skEnumField":
+    case 'skEnumField':
       return vscode.CompletionItemKind.Enum;
-    case "skForVar":
+    case 'skForVar':
       return vscode.CompletionItemKind.Variable;
-    case "skIterator":
+    case 'skIterator':
       return vscode.CompletionItemKind.Keyword;
-    case "skLabel":
+    case 'skLabel':
       return vscode.CompletionItemKind.Keyword;
-    case "skLet":
+    case 'skLet':
       return vscode.CompletionItemKind.Value;
-    case "skMacro":
+    case 'skMacro':
       return vscode.CompletionItemKind.Snippet;
-    case "skMethod":
+    case 'skMethod':
       return vscode.CompletionItemKind.Method;
-    case "skParam":
+    case 'skParam':
       return vscode.CompletionItemKind.Variable;
-    case "skProc":
+    case 'skProc':
       return vscode.CompletionItemKind.Function;
-    case "skResult":
+    case 'skResult':
       return vscode.CompletionItemKind.Value;
-    case "skTemplate":
+    case 'skTemplate':
       return vscode.CompletionItemKind.Snippet;
-    case "skType":
+    case 'skType':
       return vscode.CompletionItemKind.Class;
-    case "skVar":
+    case 'skVar':
       return vscode.CompletionItemKind.Field;
   }
   return vscode.CompletionItemKind.Property;
@@ -69,34 +69,34 @@ function vscodeKindFromNimSym(kind: string): vscode.CompletionItemKind {
 
 function nimSymDetails(suggest: NimSuggestResult): string {
   switch (suggest.suggest) {
-    case "skConst":
-      return "const " + suggest.fullName + ": " + suggest.type;
-    case "skEnumField":
-      return "enum " + suggest.type;
-    case "skForVar":
-      return "for var of " + suggest.type;
-    case "skIterator":
+    case 'skConst':
+      return 'const ' + suggest.fullName + ': ' + suggest.type;
+    case 'skEnumField':
+      return 'enum ' + suggest.type;
+    case 'skForVar':
+      return 'for var of ' + suggest.type;
+    case 'skIterator':
       return suggest.type;
-    case "skLabel":
-      return "label";
-    case "skLet":
-      return "let of " + suggest.type;
-    case "skMacro":
-      return "macro";
-    case "skMethod":
+    case 'skLabel':
+      return 'label';
+    case 'skLet':
+      return 'let of ' + suggest.type;
+    case 'skMacro':
+      return 'macro';
+    case 'skMethod':
       return suggest.type;
-    case "skParam":
-      return "param";
-    case "skProc":
+    case 'skParam':
+      return 'param';
+    case 'skProc':
       return suggest.type;
-    case "skResult":
-      return "result";
-    case "skTemplate":
+    case 'skResult':
+      return 'result';
+    case 'skTemplate':
       return suggest.type;
-    case "skType":
-      return "type " + suggest.fullName;
-    case "skVar":
-      return "var of " + suggest.type;
+    case 'skType':
+      return 'type ' + suggest.fullName;
+    case 'skVar':
+      return 'var of ' + suggest.type;
   }
   return suggest.type;
 }

@@ -6,9 +6,8 @@
 'use strict';
 
 import vscode = require('vscode');
-import { getDirtyFile } from './nimUtils'
-import { getNormalizedWorkspacePath } from './nimIndexer'
-import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec'
+import { getDirtyFile } from './nimUtils';
+import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec';
 
 
 export class NimHoverProvider implements vscode.HoverProvider {
@@ -21,8 +20,8 @@ export class NimHoverProvider implements vscode.HoverProvider {
             let def = result.pop();
 
             let label = def.fullName;
-            if (def.type != "")
-              label += ": " + def.type;
+            if (def.type !== '')
+              label += ': ' + def.type;
             resolve(new vscode.Hover(label, def.range));
           } else {
             resolve(null);

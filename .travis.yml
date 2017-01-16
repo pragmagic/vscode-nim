@@ -5,3 +5,7 @@ sudo: false
 install:
   - npm install
   - npm run vscode:prepublish
+
+script:
+  - npm run lint
+  - npm test --silent

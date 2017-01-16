@@ -6,9 +6,8 @@
 'use strict';
 
 import vscode = require('vscode');
-import { getDirtyFile } from './nimUtils'
-import { getNormalizedWorkspacePath } from './nimIndexer'
-import { execNimSuggest, NimSuggestResult, NimSuggestType} from './nimSuggestExec'
+import { getDirtyFile } from './nimUtils';
+import { execNimSuggest, NimSuggestResult, NimSuggestType} from './nimSuggestExec';
 
 
 export class NimDefinitionProvider implements vscode.DefinitionProvider {
