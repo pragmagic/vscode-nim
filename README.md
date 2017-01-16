@@ -61,7 +61,8 @@ The following Visual Studio Code settings are available for the Nim extension.  
 ### Commands
 The following commands are provided by the extension:
 
-* `Nim: Run selected file` - compile and run selected file, it uses `c` compiler by default, but you can specify `cpp` in `nim.buildCommand` config parameter. This command available from file context menu or by `F6` keyboard shortcut
+* `Nim: Run selected file` - compile and run selected file, it uses `c` compiler by default, but you can specify `cpp` in `nim.buildCommand` config parameter. 
+This command available from file context menu or by `F6` keyboard shortcut. To execute unsaved content you need specify `nim.runUnsaved` config parameter.
 
 ## TODO
 

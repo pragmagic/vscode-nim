@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.5.14 (16 Jan 2017)
+* Fixed when terminal not appeared after was closed
+* Added option for run unsaved content ("nim.runUnsaved" configuration property)
+
 ## 0.5.13 (18 Dec 2016)
 * Added "Nim: Run file" command that run selected file with `F6` keyboard shortcut
 * Fixed "Provide more details in symbols window" [#27](https://github.com/pragmagic/vscode-nim/issues/27)
