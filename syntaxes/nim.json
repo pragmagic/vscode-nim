@@ -150,7 +150,7 @@
     {
       "comment": "Keyword boolean operators for expressions.",
       "match": "(\\b(and|in|is|isnot|not|notin|or|xor)\\b)",
-      "name": "keyword.operator.boolean.nim"
+      "name": "keyword.boolean.nim"
     },
     {
       "comment": "Generic operators for expressions.",
