@@ -23,6 +23,8 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
               var suggestion = new vscode.CompletionItem(item.symbolName);
               suggestion.kind = vscodeKindFromNimSym(item.suggest);
               suggestion.detail = nimSymDetails(item);
+              suggestion.sortText = ('0000' + suggestions.length).slice(-4);
+              // use predefined text to disable suggest sorting
               suggestion.documentation = item.documentation;
               suggestions.push(suggestion);
             }
