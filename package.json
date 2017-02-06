@@ -61,14 +61,12 @@
             {
                 "id": "nim",
                 "aliases": ["Nim", "nim"],
-                "extensions": [".nim", ".nims", "nim.cfg", ".nim.cfg"],
-                "configuration": "./nim.configuration.json"
+                "extensions": [".nim", ".nims", "nim.cfg", ".nim.cfg"]
             },
             {
                 "id": "nimble",
                 "aliases": ["Nimble", "nimble"],
-                "extensions": [".nimble"],
-                "configuration": "./nimble.configuration.json"
+                "extensions": [".nimble"]
             }
         ],
         "grammars": [
@@ -137,10 +135,10 @@
                     "default": false,
                     "description": "Enable verbose logging of nimsuggest to use profile directory."
                 },
-                "nim.runUnsaved": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "If true then F6 will run unsaved editor content."
+                "nim.licenseString": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Optional license text that will be inserted on nim file creation."
                 }
             }
         },

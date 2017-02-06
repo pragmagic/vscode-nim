@@ -14,5 +14,6 @@
     "editor.renderWhitespace": "none",
     "editor.tabSize": 4,
     "typescript.tsdk": "./node_modules/typescript/lib",
-    "tslint.enable": true
+    "tslint.enable": true,
+    "vsicons.presets.angular": false
 }

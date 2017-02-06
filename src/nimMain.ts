@@ -37,6 +37,26 @@ export function activate(ctx: vscode.ExtensionContext): void {
     diagnosticCollection = vscode.languages.createDiagnosticCollection('nim');
     ctx.subscriptions.push(diagnosticCollection);
 
+    vscode.languages.setLanguageConfiguration(NIM_MODE.language, {
+        indentationRules: {
+            increaseIndentPattern: /^\s*(((if|when|elif|else|except|finally|for|try|while|of)\b.*:)|((proc|macro|iterator|template|converter)\b.*\=)|(import|var|const|type))\s*$/,
+            decreaseIndentPattern: /^\s*(((return|break|continue|raise)\n)|((elif|else|except|finally)\b.*:))\s*$/
+        },
+        wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
+        onEnterRules: [
+            {
+                beforeText: /^ *#\s.*$/,
+                afterText: /.+$/,
+                action: { indentAction: vscode.IndentAction.None, appendText: '# ' }
+            },
+            {
+                beforeText: /^ *##\s.*$/,
+                afterText: /.+$/,
+                action: { indentAction: vscode.IndentAction.None, appendText: '## ' }
+            }
+        ]
+    });
+
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
 
     vscode.commands.registerCommand('nim.run.file', runFile);
