@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 0.5.15 (06 Feb 2017)
+* Highlight boolean keywords in default schemes (#34)
+* Prevent sorting code completion suggestions
+* Incorrect indentation after string literal (#32)
+* Improve run selected file (#5)
+
 ## 0.5.14 (16 Jan 2017)
 * Fixed when terminal not appeared after was closed
 * Added option for run unsaved content ("nim.runUnsaved" configuration property)
