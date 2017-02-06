@@ -54,6 +54,15 @@ export function activate(ctx: vscode.ExtensionContext): void {
                 afterText: /.+$/,
                 action: { indentAction: vscode.IndentAction.None, appendText: '## ' }
             }
+        ],
+        comments: {
+            lineComment: "#",
+            blockComment: ["#[", "]#"],
+        },
+        brackets: [
+            ["[", "]"],
+            ["(", ")"],
+            ["\"", "\""] // Not the best solution
         ]
     });
 
