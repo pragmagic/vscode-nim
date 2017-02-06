@@ -89,7 +89,7 @@ export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
               }
             }
 
-            var signatureCutDown = /(proc|macro|template) \((.+: .+)*\)/.exec(genericsCleanType);
+            var signatureCutDown = /(proc|macro|template|iterator) \((.+: .+)*\)/.exec(genericsCleanType);
             var parameters = signatureCutDown[2].split(', ');
             parameters.forEach(parameter => {
               signature.parameters.push(new vscode.ParameterInformation(parameter));
