@@ -56,13 +56,14 @@ export function activate(ctx: vscode.ExtensionContext): void {
             }
         ],
         comments: {
-            lineComment: "#",
-            blockComment: ["#[", "]#"],
+            lineComment: '#',
+            blockComment: ['#[', ']#'],
         },
         brackets: [
-            ["[", "]"],
-            ["(", ")"],
-            ["\"", "\""] // Not the best solution
+            ['[', ']'],
+            ['(', ')'],
+            ['"', '"'],
+            ['\'', '\'']
         ]
     });
 
