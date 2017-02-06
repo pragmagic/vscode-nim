@@ -175,12 +175,21 @@ function runFile() {
             terminal = vscode.window.createTerminal('Nim');
         }
         terminal.show(true);
-        if (vscode.workspace.getConfiguration('nim')['runUnsaved']) {
+        if (editor.document.isUntitled) {
             terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
                 ' -r ' + getDirtyFile(editor.document), true);
         } else {
-            terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-                ' -r ' + editor.document.fileName, true);
+            if (editor.document.isDirty) {
+                editor.document.save().then((success: boolean) => {
+                    if (success) {
+                        terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
+                            ' -r ' + editor.document.fileName, true);
+                    }
+                });
+            } else {
+                terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
+                    ' -r ' + editor.document.fileName, true);
+            }
         }
     }
 }

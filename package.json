@@ -89,7 +89,7 @@
         ],
         "menus": {
             "editor/context": [{
-                "when": "resourceLangId == nim",
+                "when": "editorLangId == 'nim'",
                 "command": "nim.run.file",
                 "group": "run@1"
             }]
@@ -98,7 +98,7 @@
             {
                 "key": "F6",
                 "command": "nim.run.file",
-                "when": "resourceLangId == nim"
+                "when": "editorLangId == 'nim'"
             }
         ],
         "configuration": {
