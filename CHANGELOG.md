@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 0.5.16 (07 Feb 2017)
+* Fixed toggle line comment stopped working in .nim files after 0.5.15 update [#35](https://github.com/pragmagic/vscode-nim/issues/35)
+* Readded bracket auto closing (it is intended that the string literals are brackets, VSCode recognises this and doesn't show a box around quotation marks)
+* Fixed signature completion of iterators
+* Fixed two snippets which pasted invalid code
+
 ## 0.5.15 (06 Feb 2017)
 * Highlight boolean keywords in default schemes (#34)
 * Prevent sorting code completion suggestions
