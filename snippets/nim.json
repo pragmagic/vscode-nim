@@ -30,11 +30,11 @@
         },
         "while": {
             "prefix": "while",
-            "body": "while ${1:expression}\n\t$0"
+            "body": "while ${1:expression}:\n\t$0"
         },
         "block": {
             "prefix": "block",
-            "body": "block ${1:name}\n\t$0"
+            "body": "block ${1:name}:\n\t$0"
         },
         "case": {
             "prefix": "case",
