@@ -199,9 +199,11 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
                         result.push(item);
                     }
                 }
+            } else if (ret === 'EPC Connection closed') {
+                throw Error(ret);
             } else {
                 var item = new NimSuggestResult();
-                item.suggest = "" + ret;
+                item.suggest = '' + ret;
                 result.push(item);
             }
         }

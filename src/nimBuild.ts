@@ -10,7 +10,8 @@ import cp = require('child_process');
 import path = require('path');
 import os = require('os');
 import fs = require('fs');
-import { getNimExecPath, getProjectFile, getProjects, isProjectMode } from './nimUtils';
+import { getNimExecPath, getProjectFile, getProjects, isProjectMode, getDirtyFile } from './nimUtils';
+import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec';
 
 export interface ICheckResult {
     file: string;
@@ -74,7 +75,7 @@ function parseErrors(lines: string[]): ICheckResult[] {
     var ret: ICheckResult[] = [];
     var templateError: boolean = false;
     var messageText = '';
-    var lastFile = {file: null, column: null, line: null};
+    var lastFile = { file: null, column: null, line: null };
     for (var i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
         if (line.startsWith('Hint:')) {
@@ -89,7 +90,7 @@ function parseErrors(lines: string[]): ICheckResult[] {
             let [_, file, lineStr, charStrRaw_, charStr, severityRaw, severity, msg] = match;
             if (msg === 'template/generic instantiation from here') {
                 if (file.toLowerCase().startsWith(vscode.workspace.rootPath.toLowerCase())) {
-                   lastFile = {file: file, column: charStr, line: lineStr};
+                    lastFile = { file: file, column: charStr, line: lineStr };
                 }
             } else {
                 if (messageText !== '' && ret.length > 0) {
@@ -101,7 +102,7 @@ function parseErrors(lines: string[]): ICheckResult[] {
                 } else if (lastFile.file != null) {
                     ret.push({ file: lastFile.file, line: parseInt(lastFile.line), column: parseInt(lastFile.column), msg: msg, severity });
                 }
-                lastFile = {file: null, column: null, line: null};
+                lastFile = { file: null, column: null, line: null };
             }
         }
     }
@@ -117,13 +118,16 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
     var cwd = path.dirname(filename);
 
     if (!!nimConfig['lintOnSave']) {
-        if (!isProjectMode()) {
-            runningToolsPromises.push(nimExec(getProjectFile(filename), 'check', ['--listFullPaths', getProjectFile(filename)], true, parseErrors));
-        } else {
-            getProjects().forEach(project => {
-                runningToolsPromises.push(nimExec(project, 'check', ['--listFullPaths', project], true, parseErrors));
-            });
-        }
+        runningToolsPromises.push(new Promise((resolve, reject) => {
+            execNimSuggest(NimSuggestType.chk, filename, 0, 0, '').then(items => {
+                if (items.length > 0) {
+                    let parts = items[0].suggest.replace(/\\,/g, '').replace(/u000D/g, '').replace(/\\/g, '\\').split('u000A');
+                    resolve(parseErrors(parts));
+                } else {
+                    resolve([]);
+                }
+            }).catch(reason => reject(reason));
+        }));
     }
 
     return Promise.all(runningToolsPromises).then(resultSets => [].concat.apply([], resultSets));
