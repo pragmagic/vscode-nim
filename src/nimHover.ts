@@ -6,6 +6,7 @@
 'use strict';
 
 import vscode = require('vscode');
+import { NIM_MODE } from './nimMode';
 import { getDirtyFile } from './nimUtils';
 import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec';
 
@@ -22,7 +23,12 @@ export class NimHoverProvider implements vscode.HoverProvider {
             let label = def.fullName;
             if (def.type !== '')
               label += ': ' + def.type;
-            resolve(new vscode.Hover(label, def.range));
+            let hoverLabel = { language: NIM_MODE.language, value: label };
+            if (def.documentation !== '') {
+              resolve(new vscode.Hover([hoverLabel, def.documentation], def.range));
+            } else {
+              resolve(new vscode.Hover(hoverLabel, def.range));
+            }
           } else {
             resolve(null);
           }

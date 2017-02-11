@@ -9,6 +9,7 @@ This extension adds language support for the Nim language to VS Code, including:
 
 - Syntax Highlight (nim, nimble, nim.cfg)
 - Code Completion
+- Signature Help
 - Goto Definition
 - Find References
 - File outline
@@ -67,7 +68,6 @@ This command available from file context menu or by `F6` keyboard shortcut.
 ## TODO
 
 * Rename support
-* Documentation
 * Quick info
 * Code action for imports (suggest available modules to import)
 * Debug support 

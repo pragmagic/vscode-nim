@@ -2,7 +2,7 @@
     "name": "nim",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code",
-    "version": "0.5.16",
+    "version": "0.5.17",
     "publisher": "kosz78",
     "author": {
         "name": "Xored Software Inc."

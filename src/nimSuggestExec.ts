@@ -194,7 +194,13 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
                     item.type = parts[4];
                     item.line = parts[5];
                     item.column = parts[6];
-                    item.documentation = parts[7];
+                    var doc = parts[7];
+                    if (doc !== '') {
+                        doc = doc.replace(/\\,u000A|\\,u000D\\,u000A/g, '\n');
+                        doc = doc.replace(/\`\`/g, '`');
+                        doc = doc.replace(/\`([^\<\`]+)\<([^\>]+)\>\`\_/g, '\[$1\]\($2\)');
+                    }
+                    item.documentation = doc;
                     result.push(item);
                 }
             }
