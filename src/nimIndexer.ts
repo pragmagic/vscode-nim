@@ -135,7 +135,7 @@ async function indexFile(file: string): Promise<void> {
     let doc = await findFile(file, timestamp);
     if (!doc) {
         // console.log("index: " + file);
-        let infos = await getFileSymbols(file, null);
+        let infos = await getFileSymbols(file, '');
         if (infos && infos.length > 0) {
             dbFiles.remove({ file: file }, { multi: true }, (err, n) => {
                 dbFiles.insert({ file: file, timestamp: timestamp });

@@ -20,7 +20,7 @@ export interface ICheckResult {
     severity: string;
 }
 
-let executors: { [project: string]: cp.ChildProcess; } = {};
+let executors: { [project: string]: {initialized: boolean, process: cp.ChildProcess} } = {};
 
 function nimExec(project: string, command: string, args: string[], useStdErr: boolean, callback: (lines: string[]) => any) {
     return new Promise((resolve, reject) => {
@@ -28,14 +28,20 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
             return resolve([]);
         }
         var cwd = vscode.workspace.rootPath;
-
         if (executors[project]) {
-            executors[project].kill('SIGKILL');
-            executors[project] = null;
+            if (executors[project].initialized) {
+                let ps = executors[project].process;
+                executors[project] = {initialized: false, process: null};
+                ps.kill('SIGKILL');
+            } else {
+                return reject([]);
+            }
+        } else {
+            executors[project] = {initialized: false, process: null};
         }
-
         let executor = cp.spawn(getNimExecPath(), [command, ...args], { cwd: cwd });
-        executors[project] = executor;
+        executors[project].process = executor;
+        executors[project].initialized = true;
         executor.on('error', (err) => {
             if (err && (<any>err).code === 'ENOENT') {
                 vscode.window.showInformationMessage('No \'nim\' binary could be found in PATH: \'' + process.env['PATH'] + '\'');
@@ -45,10 +51,10 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
 
         var out = '';
         executor.on('exit', (code, signal) => {
-            executors[project] = null;
             if (signal === 'SIGKILL') {
                 reject([]);
             } else {
+                executors[project] = null;
                 try {
                     var ret = callback(out.split(os.EOL));
                     resolve(ret);

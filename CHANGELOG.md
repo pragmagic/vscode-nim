@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.5.18 (15 Feb 2017)
+* Verbose logging for nimsuggest
+* Fix nim check leaks and nimsuggest instance leaks
+
 ## 0.5.17 (11 Feb 2017)
 * Nim documentation support improvements for hover and code completion
 
