@@ -27,6 +27,8 @@ var fileWatcher: vscode.FileSystemWatcher;
 var terminal: vscode.Terminal;
 
 export function activate(ctx: vscode.ExtensionContext): void {
+    vscode.commands.registerCommand('nim.run.file', runFile);
+
     initNimSuggest(ctx);
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
     ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
@@ -69,7 +71,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
 
-    vscode.commands.registerCommand('nim.run.file', runFile);
     vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
         if (terminal && e.processId === terminal.processId) {
             terminal = null;
