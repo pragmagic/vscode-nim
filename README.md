@@ -15,16 +15,17 @@ This extension adds language support for the Nim language to VS Code, including:
 - File outline
 - Build-on-save
 - Workspace symbol search
+- Quick info
 
 ## Using
 
-First, you will need to install Visual Studio Code `0.10`. 
-In the command palette (`cmd-shift-p`) select `Install Extension` and choose `Nim`.  
+First, you will need to install Visual Studio Code `0.10`.
+In the command palette (`cmd-shift-p`) select `Install Extension` and choose `Nim`.
 
 The following tools are required for the extension:
 * Nim compiler - http://nim-lang.org
 
-_Note_: It is recommended to turn `Auto Save` on in Visual Studio Code (`File -> Auto Save`) when using this extension.  
+_Note_: It is recommended to turn `Auto Save` on in Visual Studio Code (`File -> Auto Save`) when using this extension.
 
 ### Options
 
@@ -32,19 +33,18 @@ The following Visual Studio Code settings are available for the Nim extension.  
 * `nim.buildOnSave` - perform build task from `tasks.json` file, to use this options you need declare build task according to [Tasks Documentaiton](https://code.visualstudio.com/docs/editor/taskshttps://code.visualstudio.com/docs/editor/tasks), for example:
 	```json
 	{
-  	   "version": "0.1.0",
-  	   "command": "nim",
-	   "args": ["c", "-r", "module.nim"],
-	   "options": {
-	      "cwd": "${workspaceRoot}"
-  	   },
-	      "isShellCommand": true
-  	   }
+		"version": "0.1.0",
+		"command": "nim",
+		"args": ["c", "-r", "module.nim"],
+		"options": {
+			"cwd": "${workspaceRoot}"
+		},
+		"isShellCommand": true
 	}
-	``` 
+	```
 * `nim.lintOnSave` - perform the project check for errors on save
 * `nim.project` - optional array of projects file, if nim.project not defined then all nim files will be used as separate project
-* `nim.licenseString` - optional license text that will be inserted on nim file creation 
+* `nim.licenseString` - optional license text that will be inserted on nim file creation
 
 
 #### Example
@@ -62,15 +62,14 @@ The following Visual Studio Code settings are available for the Nim extension.  
 ### Commands
 The following commands are provided by the extension:
 
-* `Nim: Run selected file` - compile and run selected file, it uses `c` compiler by default, but you can specify `cpp` in `nim.buildCommand` config parameter. 
+* `Nim: Run selected file` - compile and run selected file, it uses `c` compiler by default, but you can specify `cpp` in `nim.buildCommand` config parameter.
 This command available from file context menu or by `F6` keyboard shortcut.
 
 ## TODO
 
 * Rename support
-* Quick info
 * Code action for imports (suggest available modules to import)
-* Debug support 
+* Debug support
 
 ## ChangeLog
 

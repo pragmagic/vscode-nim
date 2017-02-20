@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.5.19 (20 Feb 2017)
+* Fix Get "command 'nim.run.file' not found" when trying to run file [#37](https://github.com/pragmagic/vscode-nim/issues/37)
+* Add experimental option useNimsuggestCheck to use nimsuggest tools for error checking
+
 ## 0.5.18 (15 Feb 2017)
 * Verbose logging for nimsuggest
 * Fix nim check leaks and nimsuggest instance leaks
