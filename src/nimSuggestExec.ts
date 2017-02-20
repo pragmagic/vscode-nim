@@ -13,8 +13,8 @@ import fs = require('fs');
 import net = require('net');
 import elrpc = require('elrpc');
 import elparser = require('elparser');
-import {prepareConfig, getProjectFile, isProjectMode, getNimExecPath, removeDirSync, correctBinname} from './nimUtils';
-import {hideNimStatus, showNimStatus} from './nimStatus';
+import { prepareConfig, getProjectFile, isProjectMode, getNimExecPath, removeDirSync, correctBinname } from './nimUtils';
+import { hideNimStatus, showNimStatus } from './nimStatus';
 
 class NimSuggestProcessDescription {
     process: cp.ChildProcess;
@@ -214,6 +214,10 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
             } else if (ret === 'EPC Connection closed') {
                 console.error(ret);
                 await closeNimSuggestProcess(filename);
+            } else {
+                var item = new NimSuggestResult();
+                item.suggest = '' + ret;
+                result.push(item);
             }
         }
         if (!isProjectMode() && vscode.window.visibleTextEditors.every(
