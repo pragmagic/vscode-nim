@@ -60,7 +60,8 @@
             {
                 "id": "nim",
                 "aliases": ["Nim", "nim"],
-                "extensions": [".nim", ".nims", "nim.cfg", ".nim.cfg"]
+                "extensions": [".nim", ".nims", "nim.cfg", ".nim.cfg"],
+                "configuration": "./nimcfg.json"
             },
             {
                 "id": "nimble",
