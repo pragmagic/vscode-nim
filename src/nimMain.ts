@@ -188,18 +188,18 @@ function runFile() {
         terminal.show(true);
         if (editor.document.isUntitled) {
             terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-                ' -r ' + getDirtyFile(editor.document), true);
+                ' -r "' + getDirtyFile(editor.document)+'"', true);
         } else {
             if (editor.document.isDirty) {
                 editor.document.save().then((success: boolean) => {
                     if (success) {
                         terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-                            ' -r ' + editor.document.fileName, true);
+                            ' -r "' + editor.document.fileName+'"', true);
                     }
                 });
             } else {
                 terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-                    ' -r ' + editor.document.fileName, true);
+                    ' -r "' + editor.document.fileName+'"', true);
             }
         }
     }
