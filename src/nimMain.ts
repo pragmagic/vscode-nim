@@ -143,7 +143,8 @@ function runCheck(document: vscode.TextDocument) {
                 if (error.msg.indexOf('\'') >= 0) {
                     endColumn += error.msg.lastIndexOf('\'') - error.msg.indexOf('\'') - 2;
                 }
-                let range = new vscode.Range(error.line - 1, error.column - 1, error.line - 1, endColumn);
+                let line = Math.max(0, error.line - 1)
+                let range = new vscode.Range(line, Math.max(0, error.column - 1), line, endColumn);
                 let diagnostic = new vscode.Diagnostic(range, error.msg, mapSeverityToVSCodeSeverity(error.severity));
                 let diagnostics = diagnosticMap.get(targetUri);
                 if (!diagnostics) {
@@ -188,18 +189,18 @@ function runFile() {
         terminal.show(true);
         if (editor.document.isUntitled) {
             terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-                ' -r "' + getDirtyFile(editor.document)+'"', true);
+                ' -r "' + getDirtyFile(editor.document) + '"', true);
         } else {
             if (editor.document.isDirty) {
                 editor.document.save().then((success: boolean) => {
                     if (success) {
                         terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-                            ' -r "' + editor.document.fileName+'"', true);
+                            ' -r "' + editor.document.fileName + '"', true);
                     }
                 });
             } else {
                 terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-                    ' -r "' + editor.document.fileName+'"', true);
+                    ' -r "' + editor.document.fileName + '"', true);
             }
         }
     }

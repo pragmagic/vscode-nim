@@ -253,10 +253,15 @@ export async function closeNimSuggestProcess(filename: string): Promise<void> {
 async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProcessDescription> {
     if (!nimSuggestProcessCache[nimProject]) {
         nimSuggestProcessCache[nimProject] = new Promise<NimSuggestProcessDescription>((resolve, reject) => {
+            let nimConfig = vscode.workspace.getConfiguration('nim')
             var args = ['--epc', '--v2'];
-            if (!!vscode.workspace.getConfiguration('nim').get('logNimsuggest')) {
+            if (!!nimConfig['logNimsuggest']) {
                 args.push('--log');
             }
+            if (!!nimConfig['useNimsuggestCheck']) {
+                args.push('--refresh:on');
+            }
+
             args.push(nimProject);
             let process = cp.spawn(getNimSuggestPath(), args, { cwd: vscode.workspace.rootPath });
             process.stdout.once('data', (data) => {

@@ -11,7 +11,7 @@ import path = require('path');
 import os = require('os');
 import fs = require('fs');
 import { getNimExecPath, getProjectFile, getProjects, isProjectMode } from './nimUtils';
-import { execNimSuggest, NimSuggestType } from './nimSuggestExec';
+import { execNimSuggest, NimSuggestType, NimSuggestResult } from './nimSuggestExec';
 
 export interface ICheckResult {
     file: string;
@@ -119,6 +119,18 @@ function parseErrors(lines: string[]): ICheckResult[] {
     return ret;
 }
 
+function parseNimsuggestErrors(items: NimSuggestResult[]): ICheckResult[] {
+    var ret: ICheckResult[] = [];
+    for (var i = 0; i < items.length; i++) {
+        let item = items[i];
+        if (item.path === '???' && item.type === 'Hint') {
+            continue;
+        }
+        ret.push({ file: item.path, line: item.line, column: item.column, msg: item.documentation, severity: item.type });
+    }
+    return ret;
+}
+
 export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration): Promise<ICheckResult[]> {
     var runningToolsPromises = [];
     var cwd = path.dirname(filename);
@@ -128,8 +140,7 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
             runningToolsPromises.push(new Promise((resolve, reject) => {
                 execNimSuggest(NimSuggestType.chk, filename, 0, 0, '').then(items => {
                     if (items.length > 0) {
-                        let parts = items[0].suggest.replace(/\\,/g, '').replace(/u000D/g, '').replace(/\\/g, '\\').split('u000A');
-                        resolve(parseErrors(parts));
+                        resolve(parseNimsuggestErrors(items));
                     } else {
                         resolve([]);
                     }
