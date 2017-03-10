@@ -40,7 +40,9 @@ export enum NimSuggestType {
     /** Returns all tokens in file (symbolType, line, pos, lenght) */
     highlight,
     /** Get outline symbols for file */
-    outline
+    outline,
+    /** Returns 'true' if given file is related to the project, otherwise 'false'  */
+    known
 }
 /**
  * Parsed string line from nimsuggest utility.
@@ -253,7 +255,7 @@ export async function closeNimSuggestProcess(filename: string): Promise<void> {
 async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProcessDescription> {
     if (!nimSuggestProcessCache[nimProject]) {
         nimSuggestProcessCache[nimProject] = new Promise<NimSuggestProcessDescription>((resolve, reject) => {
-            let nimConfig = vscode.workspace.getConfiguration('nim')
+            let nimConfig = vscode.workspace.getConfiguration('nim');
             var args = ['--epc', '--v2'];
             if (!!nimConfig['logNimsuggest']) {
                 args.push('--log');
@@ -265,16 +267,25 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
             args.push(nimProject);
             let process = cp.spawn(getNimSuggestPath(), args, { cwd: vscode.workspace.rootPath });
             process.stdout.once('data', (data) => {
-                elrpc.startClient(parseInt(data.toString())).then((client) => {
-                    client.socket.on('error', err => {
-                        console.error(err);
+                let dataStr = data.toString();
+                let portNumber = parseInt(dataStr);
+                if (isNaN(portNumber)) {
+                    reject('Nimsuggest returns unknown port number: ' + dataStr);
+                } else {
+                    elrpc.startClient(portNumber).then((client) => {
+                        client.socket.on('error', err => {
+                            console.error(err);
+                        });
+                        resolve({ process: process, rpc: client });
+                    }, (reason: any) => {
+                        reject(reason);
                     });
-                    resolve({ process: process, rpc: client });
-                }, (reason: any) => {
-                    reject(reason);
-                });
+                }
             });
-            process.on('close', () => {
+            process.on('close', (code: number, signal: string) => {
+                if (code !== 0) {
+                    console.error('nimsuggest closed with code: ' + code + ', signal: ' + signal);
+                }
                 if (nimSuggestProcessCache[nimProject]) {
                     nimSuggestProcessCache[nimProject].then((desc) => {
                         desc.rpc.stop();

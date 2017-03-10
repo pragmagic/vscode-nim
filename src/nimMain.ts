@@ -143,8 +143,8 @@ function runCheck(document: vscode.TextDocument) {
                 if (error.msg.indexOf('\'') >= 0) {
                     endColumn += error.msg.lastIndexOf('\'') - error.msg.indexOf('\'') - 2;
                 }
-                let line = Math.max(0, error.line - 1)
-                let range = new vscode.Range(line, Math.max(0, error.column - 1), line, endColumn);
+                let line = Math.max(0, error.line - 1);
+                let range = new vscode.Range(line, Math.max(0, error.column - 1), line, Math.max(0, endColumn));
                 let diagnostic = new vscode.Diagnostic(range, error.msg, mapSeverityToVSCodeSeverity(error.severity));
                 let diagnostics = diagnosticMap.get(targetUri);
                 if (!diagnostics) {
