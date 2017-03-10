@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.5.20 (10 Mar 2017)
+* Allows compile/run files in a path with spaces [PR #41](https://github.com/pragmagic/vscode-nim/pull/41)
+* Improve experimental nimsuggest check support
+
 ## 0.5.19 (20 Feb 2017)
 * Fix Get "command 'nim.run.file' not found" when trying to run file [#37](https://github.com/pragmagic/vscode-nim/issues/37)
 * Add experimental option useNimsuggestCheck to use nimsuggest tools for error checking
