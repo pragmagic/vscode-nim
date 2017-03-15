@@ -41,7 +41,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     vscode.languages.setLanguageConfiguration(NIM_MODE.language, {
         indentationRules: {
-            increaseIndentPattern: /^\s*(((if|when|elif|else|except|finally|for|try|while|of)\b.*:)|((proc|macro|iterator|template|converter)\b.*\=)|(import|var|const|type))\s*$/,
+            increaseIndentPattern: /^\s*((((proc|macro|iterator|template|converter)\b.*\=)|(import|var|const|type)\s)|(import|let|var|const|type)|([^:]+:))$/,
             decreaseIndentPattern: /^\s*(((return|break|continue|raise)\n)|((elif|else|except|finally)\b.*:))\s*$/
         },
         wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
