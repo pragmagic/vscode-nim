@@ -126,6 +126,11 @@
                     "default": "c",
                     "description": "Nim build command (c, cpp, doc, etc)"
                 },
+                "nim.runOutputDirectory": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Output directory for run selected file command. The directory is relative to the workspace root."
+                },
                 "nim.lintOnSave": {
                     "type": "boolean",
                     "default": true,
