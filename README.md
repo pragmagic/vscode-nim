@@ -55,7 +55,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 	"nim.buildCommand": "c",
 	"nim.lintOnSave": true,
 	"nim.project": ["project.nim", "project2.nim"],
-	"nim.licenseString": "# Copyright 2016.\n\n"
+	"nim.licenseString": "# Copyright 2017.\n\n"
 }
 ```
 

@@ -1,5 +1,12 @@
 # ChangeLog
 
+## 0.5.21 (21 Mar 2017)
+* Refixed [#32](https://github.com/pragmagic/vscode-nim/issues/32) [PR #45](https://github.com/pragmagic/vscode-nim/pull/45)
+* Added support for auto bracket closing in nimble files [PR #45](https://github.com/pragmagic/vscode-nim/pull/45)
+* Improved the identation pattern to work on statement macros [PR #45](https://github.com/pragmagic/vscode-nim/pull/45)
+* Add output directory configuration for run selected file command
+* Improve code completion filtering
+
 ## 0.5.20 (10 Mar 2017)
 * Allows compile/run files in a path with spaces [PR #41](https://github.com/pragmagic/vscode-nim/pull/41)
 * Improve experimental nimsuggest check support
