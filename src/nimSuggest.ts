@@ -13,13 +13,13 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
   public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.CompletionItem[]> {
     return new Promise<vscode.CompletionItem[]>((resolve, reject) => {
       var filename = document.fileName;
-
+      let range = document.getWordRangeAtPosition(position);
+      let txt = range ? document.getText(range).toLowerCase() : undefined;
       execNimSuggest(NimSuggestType.sug, filename, (position.line + 1), position.character, getDirtyFile(document))
-        .then(item => {
+        .then(items => {
           var suggestions = [];
-
-          item.forEach(item => {
-            if (item.answerType === 'sug') {
+          items.forEach(item => {
+            if (item.answerType === 'sug' && (!txt || item.symbolName.toLowerCase().indexOf(txt) >= 0)) {
               var suggestion = new vscode.CompletionItem(item.symbolName);
               suggestion.kind = vscodeKindFromNimSym(item.suggest);
               suggestion.detail = nimSymDetails(item);
@@ -29,7 +29,11 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
               suggestions.push(suggestion);
             }
           });
-          resolve(suggestions);
+          if (suggestions.length > 0) {
+            resolve(suggestions);
+          } else {
+            reject();
+          }
         }).catch(reason => reject(reason));
     });
   }

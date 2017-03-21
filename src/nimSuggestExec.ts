@@ -23,6 +23,7 @@ class NimSuggestProcessDescription {
 
 let nimSuggestProcessCache: { [project: string]: PromiseLike<NimSuggestProcessDescription> } = {};
 var _nimSuggestPath: string = undefined;
+var _nimSuggestVersion: string = undefined;
 
 export enum NimSuggestType {
     /** Suggest from position */
@@ -123,48 +124,46 @@ export function getNimSuggestPath(): string {
     return _nimSuggestPath;
 }
 
+export function getNimSuggestVersion(): string {
+    return _nimSuggestVersion;
+}
+
+/**
+ * Returns true if nimsuggest version is great or equals to given.
+ * @param version version to match
+ */
+export function isNimSuggestVersion(version: string): boolean {
+    if (!_nimSuggestVersion) {
+        return false;
+    }
+    let nimVersionParts = _nimSuggestVersion.split('.');
+    let versionParts = version.split('.');
+    for (var i = 0; i < Math.min(nimVersionParts.length, versionParts.length); i++) {
+        let diff = parseInt(nimVersionParts[i]) - parseInt(versionParts[i]);
+        if (diff === 0) {
+            continue;
+        }
+        return diff > 0;
+    }
+    return true;
+}
+
 export function initNimSuggest(ctx: vscode.ExtensionContext) {
     prepareConfig();
     // let check nimsuggest related nim executable
     let nimSuggestNewPath = path.resolve(path.dirname(getNimExecPath()), correctBinname('nimsuggest'));
     if (fs.existsSync(nimSuggestNewPath)) {
         _nimSuggestPath = nimSuggestNewPath;
-        return;
+        let versionOutput = cp.spawnSync(getNimSuggestPath(), ['--version'], { cwd: vscode.workspace.rootPath }).output.toString();
+        let versionArgs = /.+Version\s([\d|\.]+)\s\(.+/g.exec(versionOutput);
+        if (versionArgs && versionArgs.length === 2) {
+            _nimSuggestVersion =  versionArgs[1];
+        }
+
+        console.log(versionOutput);
+        console.log('Nimsuggest version: ' + _nimSuggestVersion);
     }
     vscode.workspace.onDidChangeConfiguration(prepareConfig);
-    let extensionPath = ctx.extensionPath;
-    var nimSuggestDir = path.resolve(extensionPath, 'nimsuggest');
-    var nimSuggestSourceFile = path.resolve(nimSuggestDir, 'nimsuggest.nim');
-    var execFile = path.resolve(nimSuggestDir, correctBinname('nimsuggest'));
-    var nimExecTimestamp = fs.statSync(getNimExecPath()).mtime.getTime();
-    var nimSuggestTimestamp = fs.statSync(nimSuggestSourceFile).mtime.getTime();
-
-    if (fs.existsSync(execFile) && ctx.globalState.get('nimExecTimestamp', 0) === nimExecTimestamp &&
-        ctx.globalState.get('nimSuggestTimestamp', 0) === nimSuggestTimestamp) {
-        _nimSuggestPath = execFile;
-    } else {
-        let nimCacheDir = path.resolve(nimSuggestDir, 'nimcache');
-        if (fs.existsSync(nimCacheDir)) {
-            removeDirSync(nimCacheDir);
-        }
-        let cmd = '"' + getNimExecPath()  + '" c -d:release --path:"' + path.dirname(path.dirname(getNimExecPath())) + '" nimsuggest.nim';
-        showNimStatus('Compiling nimsuggest', '');
-        cp.exec(cmd, { cwd: nimSuggestDir }, (error, stdout, stderr) => {
-            hideNimStatus();
-
-            if (error) {
-                vscode.window.showWarningMessage('Cannot compile nimsuggest. See console log for details');
-                console.log(error);
-                return;
-            }
-            if (stderr && stderr.length > 0) {
-                console.error(stderr);
-            }
-            _nimSuggestPath = execFile;
-            ctx.globalState.update('nimExecTimestamp', nimExecTimestamp);
-            ctx.globalState.update('nimSuggestTimestamp', nimSuggestTimestamp);
-        });
-    }
 }
 
 function trace(pid: number, projectFile: string, msg: any): void {
@@ -175,7 +174,7 @@ function trace(pid: number, projectFile: string, msg: any): void {
 }
 
 export async function execNimSuggest(suggestType: NimSuggestType, filename: string,
-    line: number, column: number, dirtyFile?: string, onClose?: () => void): Promise<NimSuggestResult[]> {
+    line: number, column: number, dirtyFile?: string): Promise<NimSuggestResult[]> {
     var nimSuggestExec = getNimSuggestPath();
     // if nimsuggest not found just ignore
     if (!nimSuggestExec) {
@@ -185,9 +184,10 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
         let projectFile = getProjectFile(filename);
         let normalizedFilename = filename.replace(/\\+/g, '/');
         let desc = await getNimSuggestProcess(projectFile);
-        trace(desc.process.pid, projectFile, NimSuggestType[suggestType] + ' ' + normalizedFilename + ':' + line + ':' + column);
-        let ret = await desc.rpc.callMethod(new elparser.ast.SExpSymbol(NimSuggestType[suggestType]), normalizedFilename, line, column, dirtyFile);
-        trace(desc.process.pid, projectFile + '=' + NimSuggestType[suggestType] + ' ' + normalizedFilename, ret);
+        let suggestCmd = NimSuggestType[suggestType];
+        trace(desc.process.pid, projectFile, suggestCmd + ' ' + normalizedFilename + ':' + line + ':' + column);
+        let ret = await desc.rpc.callMethod(new elparser.ast.SExpSymbol(suggestCmd), normalizedFilename, line, column, dirtyFile);
+        trace(desc.process.pid, projectFile + '=' + suggestCmd + ' ' + normalizedFilename, ret);
 
         var result: NimSuggestResult[] = [];
         if (ret != null) {
@@ -222,8 +222,8 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
                 result.push(item);
             }
         }
-        if (!isProjectMode() && vscode.window.visibleTextEditors.every(
-            (value, index, array) => { return value.document.uri.fsPath !== filename; })) {
+        if (!isProjectMode() &&
+            vscode.window.visibleTextEditors.every((value, index, array) => { return value.document.uri.fsPath !== filename; })) {
             await closeNimSuggestProcess(filename);
         }
         return result;
