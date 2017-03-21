@@ -60,12 +60,14 @@
             {
                 "id": "nim",
                 "aliases": ["Nim", "nim"],
-                "extensions": [".nim", ".nims", "nim.cfg", ".nim.cfg"]
+                "extensions": [".nim", ".nims", "nim.cfg", ".nim.cfg"],
+                "configuration": "./nimcfg.json"
             },
             {
                 "id": "nimble",
                 "aliases": ["Nimble", "nimble"],
-                "extensions": [".nimble"]
+                "extensions": [".nimble"],
+                "configuration": "./nimcfg.json"
             }
         ],
         "grammars": [
