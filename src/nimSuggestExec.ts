@@ -11,14 +11,14 @@ import path = require('path');
 import os = require('os');
 import fs = require('fs');
 import net = require('net');
-import elrpc = require('elrpc');
-import elparser = require('elparser');
+import elrpc = require('./elrpc/elrpc');
+import sexp = require('./elrpc/sexp');
 import { prepareConfig, getProjectFile, isProjectMode, getNimExecPath, removeDirSync, correctBinname } from './nimUtils';
 import { hideNimStatus, showNimStatus } from './nimStatus';
 
 class NimSuggestProcessDescription {
     process: cp.ChildProcess;
-    rpc: elrpc.RPCServer;
+    rpc: elrpc.EPCPeer;
 }
 
 let nimSuggestProcessCache: { [project: string]: PromiseLike<NimSuggestProcessDescription> } = {};
@@ -157,7 +157,7 @@ export function initNimSuggest(ctx: vscode.ExtensionContext) {
         let versionOutput = cp.spawnSync(getNimSuggestPath(), ['--version'], { cwd: vscode.workspace.rootPath }).output.toString();
         let versionArgs = /.+Version\s([\d|\.]+)\s\(.+/g.exec(versionOutput);
         if (versionArgs && versionArgs.length === 2) {
-            _nimSuggestVersion =  versionArgs[1];
+            _nimSuggestVersion = versionArgs[1];
         }
 
         console.log(versionOutput);
@@ -186,7 +186,7 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
         let desc = await getNimSuggestProcess(projectFile);
         let suggestCmd = NimSuggestType[suggestType];
         trace(desc.process.pid, projectFile, suggestCmd + ' ' + normalizedFilename + ':' + line + ':' + column);
-        let ret = await desc.rpc.callMethod(new elparser.ast.SExpSymbol(suggestCmd), normalizedFilename, line, column, dirtyFile);
+        let ret = await desc.rpc.callMethod(suggestCmd, { kind: "string", str: normalizedFilename }, { kind: "number", n: line }, { kind: "number", n: column }, { kind: "string", str: dirtyFile });
         trace(desc.process.pid, projectFile + '=' + suggestCmd + ' ' + normalizedFilename, ret);
 
         var result: NimSuggestResult[] = [];
@@ -205,8 +205,8 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
                         item.column = parts[6];
                         var doc = parts[7];
                         if (doc !== '') {
-                            doc = doc.replace(/\\,u000A|\\,u000D\\,u000A/g, '\n');
                             doc = doc.replace(/\`\`/g, '`');
+                            doc = doc.replace(/\.\. code-block:: (\w+)\r?\n(( .*\r?\n?)+)/g, '```$1\n$2\n```\n');
                             doc = doc.replace(/\`([^\<\`]+)\<([^\>]+)\>\`\_/g, '\[$1\]\($2\)');
                         }
                         item.documentation = doc;
@@ -272,15 +272,16 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
                 if (isNaN(portNumber)) {
                     reject('Nimsuggest returns unknown port number: ' + dataStr);
                 } else {
-                    elrpc.startClient(portNumber).then((client) => {
-                        client.socket.on('error', err => {
-                            console.error(err);
-                        });
-                        resolve({ process: process, rpc: client });
-                    }, (reason: any) => {
-                        reject(reason);
+                    elrpc.startClient(portNumber).then((peer) => {
+                        resolve({ process: process, rpc: peer });
                     });
                 }
+            });
+            process.stdout.once('data', (data) => {
+                console.log(data.toString());
+            });
+            process.stderr.once('data', (data) => {
+                console.log(data.toString());
             });
             process.on('close', (code: number, signal: string) => {
                 if (code !== 0) {

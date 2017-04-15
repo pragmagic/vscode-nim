@@ -32,8 +32,7 @@
         "lint": "node ./node_modules/tslint/bin/tslint ./src/*.ts ./test/*.ts"
     },
     "dependencies": {
-        "nedb": "1.8.0",
-        "elrpc": "0.1.0"
+        "nedb": "1.8.0"
     },
     "devDependencies": {
         "typescript": "^2.0.3",
