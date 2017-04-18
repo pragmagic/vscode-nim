@@ -19,6 +19,8 @@ export class EPCPeer {
     private receivedBuffer: Buffer;
     private sessions = new Map<number, (data: any) => void>();
 
+    private socketClosed = false;
+
     constructor(socket: net.Socket) {
         this.socket = socket;
         this.receivedBuffer = new Buffer(0);
@@ -47,16 +49,20 @@ export class EPCPeer {
                 }
             }
         });
-        this.socket.on("error", (err) => {
-            console.error(err);
+        this.socket.on("close", (error) => {
+            console.error("Connection closed" + (error ? " due to an error" : ""));
             this.sessions.forEach(session => {
-                session(err);
+                session("Connection closed");
             });
+            this.socketClosed = true;
         });
     }
 
     callMethod(method: string, ...parameter: sexp.SExp[]): Promise<any[]> {
         return new Promise<any[]>((resolve, reject) => {
+            if (this.socketClosed)
+                reject("Connection closed");
+
             let guid = generateUID();
 
             let payload = "(call " + guid + " " + method + " " + sexp.toString({ kind: "list", elements: parameter }) + ")";
@@ -81,7 +87,8 @@ export class EPCPeer {
     }
 
     stop() {
-        this.socket.destroy();
+        if (!this.socketClosed)
+            this.socket.destroy();
     }
 }
 
