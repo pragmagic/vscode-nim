@@ -66,7 +66,7 @@ export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
         }
       }
 
-      execNimSuggest(NimSuggestType.con, filename, position.line + 1, position.character - 1, getDirtyFile(document))
+      execNimSuggest(NimSuggestType.con, filename, position.line + 1, position.character, getDirtyFile(document))
         .then(items => {
           var signatures = new vscode.SignatureHelp();
           var isModule = 0;
