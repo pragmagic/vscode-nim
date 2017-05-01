@@ -2,11 +2,11 @@
  * Copyright (C) Xored Software Inc., RSDuck All rights reserved.
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
-import net = require("net");
-import sexp = require("./sexp");
+import net = require('net');
+import sexp = require('./sexp');
 
 function envelope(content: string): string {
-    return ("000000" + content.length.toString(16)).slice(-6) + content;
+    return ('000000' + content.length.toString(16)).slice(-6) + content;
 }
 
 function generateUID(): number {
@@ -28,9 +28,9 @@ export class EPCPeer {
             this.receivedBuffer = Buffer.concat([this.receivedBuffer, data]);
             while (this.receivedBuffer.length > 0) {
                 if (this.receivedBuffer.length >= 6) {
-                    let length = parseInt(this.receivedBuffer.toString("utf8", 0, 6), 16);
+                    let length = parseInt(this.receivedBuffer.toString('utf8', 0, 6), 16);
                     if (this.receivedBuffer.length >= length + 6) {
-                        let content = <any[]>sexp.parseSExp(this.receivedBuffer.toString("utf8", 6, 6 + length));
+                        let content = <any[]>sexp.parseSExp(this.receivedBuffer.toString('utf8', 6, 6 + length));
                         if (content) {
                             let guid = content[0][1];
                             this.sessions[guid](content[0]);
@@ -39,7 +39,7 @@ export class EPCPeer {
                             let endTime = Date.now();
                         } else {
                             this.sessions.forEach(session => {
-                                session("Received invalid SExp data")
+                                session('Received invalid SExp data');
                             });
                         }
 
@@ -49,10 +49,10 @@ export class EPCPeer {
                 }
             }
         });
-        this.socket.on("close", (error) => {
-            console.error("Connection closed" + (error ? " due to an error" : ""));
+        this.socket.on('close', (error) => {
+            console.error('Connection closed' + (error ? ' due to an error' : ''));
             this.sessions.forEach(session => {
-                session("Connection closed");
+                session('Connection closed');
             });
             this.socketClosed = true;
         });
@@ -61,22 +61,22 @@ export class EPCPeer {
     callMethod(method: string, ...parameter: sexp.SExp[]): Promise<any[]> {
         return new Promise<any[]>((resolve, reject) => {
             if (this.socketClosed)
-                reject("Connection closed");
+                reject('Connection closed');
 
             let guid = generateUID();
 
-            let payload = "(call " + guid + " " + method + " " + sexp.toString({ kind: "list", elements: parameter }) + ")";
+            let payload = '(call ' + guid + ' ' + method + ' ' + sexp.toString({ kind: 'list', elements: parameter }) + ')';
 
             this.sessions[guid] = (data) => {
                 if (!(data instanceof Array)) {
                     reject(data);
                 } else {
                     switch (data[0]) {
-                        case "return":
+                        case 'return':
                             resolve(data[2]);
                             break;
-                        case "return-error":
-                        case "epc-error":
+                        case 'return-error':
+                        case 'epc-error':
                             reject(data[2]);
                             break;
                     }
@@ -95,7 +95,7 @@ export class EPCPeer {
 export function startClient(port: number): Promise<EPCPeer> {
     return new Promise<EPCPeer>((resolve, reject) => {
         try {
-            let socket = net.createConnection(port, "localhost", () => {
+            let socket = net.createConnection(port, 'localhost', () => {
                 resolve(new EPCPeer(socket));
             });
         } catch (e) {

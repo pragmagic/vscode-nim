@@ -3,12 +3,12 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-// 
-// PLEASE DO NOT MODIFY / DELETE UNLESS YOU KNOW WHAT YOU ARE DOING  
+//
+// PLEASE DO NOT MODIFY / DELETE UNLESS YOU KNOW WHAT YOU ARE DOING
 //
 // This file is providing the test runner to use when running extension tests.
 // By default the test runner in use is Mocha based.
-// 
+//
 // You can provide your own test runner if you want to override it by exporting
 // a function run(testRoot: string, clb: (error:Error) => void) that the extension
 // host can call to run the tests. The test runner is expected to use console.log

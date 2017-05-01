@@ -50,7 +50,7 @@ export enum NimSuggestType {
  */
 export class NimSuggestResult {
 
-    /** Three characters indicating the type of returned answer 
+    /** Three characters indicating the type of returned answer
      * (e.g. def for definition, sug for suggestion, etc). */
     answerType: string;
 
@@ -58,12 +58,12 @@ export class NimSuggestResult {
      *  about any of the enums defined in the module compiler/ast.nim. */
     suggest: string;
 
-    /** Full qualitifed path of the symbol.If you are querying a symbol 
+    /** Full qualitifed path of the symbol.If you are querying a symbol
      * defined in the proj.nim file, this would have the form [proj, symbolName]. */
     names: string[];
 
-    /** Type / signature.For variables and enums this will contain the type 
-     * of the symbol, for procs, methods and templates this will contain the 
+    /** Type / signature.For variables and enums this will contain the type
+     * of the symbol, for procs, methods and templates this will contain the
      * full unique signature (e.g.proc(File)). */
     type: string;
 
@@ -77,13 +77,13 @@ export class NimSuggestResult {
     column: number;
 
     /** Docstring for the symbol if available or the empty string.
-     * To differentiate the docstring from end of answer in server mode, 
-     * the docstring is always provided enclosed in double quotes, and if 
-     * the docstring spans multiple lines, all following lines of the docstring 
+     * To differentiate the docstring from end of answer in server mode,
+     * the docstring is always provided enclosed in double quotes, and if
+     * the docstring spans multiple lines, all following lines of the docstring
      * will start with a blank space to align visually with the starting quote.
      * //
      * Also, you won't find raw \n characters breaking the one answer per line format.
-     * Instead you will need to parse sequences in the form \xHH, where HH 
+     * Instead you will need to parse sequences in the form \xHH, where HH
      * is a hexadecimal value (e.g. newlines generate the sequence \x0A). */
     documentation: string;
 
@@ -186,7 +186,7 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
         let desc = await getNimSuggestProcess(projectFile);
         let suggestCmd = NimSuggestType[suggestType];
         trace(desc.process.pid, projectFile, suggestCmd + ' ' + normalizedFilename + ':' + line + ':' + column);
-        let ret = await desc.rpc.callMethod(suggestCmd, { kind: "string", str: normalizedFilename }, { kind: "number", n: line }, { kind: "number", n: column }, { kind: "string", str: dirtyFile });
+        let ret = await desc.rpc.callMethod(suggestCmd, { kind: 'string', str: normalizedFilename }, { kind: 'number', n: line }, { kind: 'number', n: column }, { kind: 'string', str: dirtyFile });
         trace(desc.process.pid, projectFile + '=' + suggestCmd + ' ' + normalizedFilename, ret);
 
         var result: NimSuggestResult[] = [];

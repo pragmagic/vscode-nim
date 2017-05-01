@@ -20,7 +20,7 @@ var dbTypes: Datastore;
 
 /**
  * Returns workspace path from lowercase version of worspace path.
- * It is required for pathes in different cases, 
+ * It is required for pathes in different cases,
  * because nim compiler on windows system returns all pathes converted in lowercase.
  * @param file lowercase workspace path
  */
