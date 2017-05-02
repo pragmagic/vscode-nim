@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 0.5.22 (05 May 2017)
+* Reimplemented elrpc client [PR #48](https://github.com/pragmagic/vscode-nim/pull/48)
+
 ## 0.5.21 (21 Mar 2017)
 * Refixed [#32](https://github.com/pragmagic/vscode-nim/issues/32) [PR #45](https://github.com/pragmagic/vscode-nim/pull/45)
 * Added support for auto bracket closing in nimble files [PR #45](https://github.com/pragmagic/vscode-nim/pull/45)
