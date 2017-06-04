@@ -75,18 +75,17 @@ export function getBinPath(tool: string): string {
         _pathesCache[tool] = pathparts.map(dir => path.join(dir, correctBinname(tool))).filter(candidate => fs.existsSync(candidate))[0];
         if (process.platform !== 'win32') {
             try {
-                let buff;
+                let nimPath;
                 if (process.platform === 'darwin') {
-                    // dirty hack because the version of readlink that ships with osx doesn't support the -f flag
-                    // from https://stackoverflow.com/questions/1055671/how-can-i-get-the-behavior-of-gnus-readlink-f-on-a-mac#4031502
-                    buff = cp.execFileSync('python', ['-c', 'import os,sys;print(os.path.realpath(sys.argv[1]))', _pathesCache[tool]]);
+                    nimPath = _pathesCache[tool].slice(0, _pathesCache[tool].length - 3) + cp.execFileSync('readlink', [_pathesCache[tool]]).toString().trim();
                 } else if (process.platform === 'linux') {
-                    buff = cp.execFileSync('readlink', ['-f', _pathesCache[tool]]);
+                    nimPath = cp.execFileSync('readlink', ['-f', _pathesCache[tool]]).toString().trim();
                 } else {
-                    buff = cp.execFileSync('readlink', [_pathesCache[tool]]);
+                    nimPath = cp.execFileSync('readlink', [_pathesCache[tool]]).toString().trim();
                 }
-                if (buff.length > 0) {
-                    _pathesCache[tool] = buff.toString().trim();
+
+                if (nimPath.length > 0) {
+                    _pathesCache[tool] = nimPath;
                 }
             } catch (e) {
                 // ignore exception
