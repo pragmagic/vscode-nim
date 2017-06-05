@@ -74,11 +74,18 @@ export function getBinPath(tool: string): string {
         var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
         _pathesCache[tool] = pathparts.map(dir => path.join(dir, correctBinname(tool))).filter(candidate => fs.existsSync(candidate))[0];
         if (process.platform !== 'win32') {
-            let args = process.platform === 'linux' ? ['-f', _pathesCache[tool]] : [_pathesCache[tool]];
             try {
-                let buff = cp.execFileSync('readlink', args);
-                if (buff.length > 0) {
-                    _pathesCache[tool] = buff.toString().trim();
+                let nimPath;
+                if (process.platform === 'darwin') {
+                    nimPath = _pathesCache[tool].slice(0, _pathesCache[tool].length - 3) + cp.execFileSync('readlink', [_pathesCache[tool]]).toString().trim();
+                } else if (process.platform === 'linux') {
+                    nimPath = cp.execFileSync('readlink', ['-f', _pathesCache[tool]]).toString().trim();
+                } else {
+                    nimPath = cp.execFileSync('readlink', [_pathesCache[tool]]).toString().trim();
+                }
+
+                if (nimPath.length > 0) {
+                    _pathesCache[tool] = nimPath;
                 }
             } catch (e) {
                 // ignore exception
