@@ -1,7 +1,7 @@
 # Nim for Visual Studio Code
 
-[![Version](http://vsmarketplacebadge.apphb.com/version/kosz78.nim.svg)](https://marketplace.visualstudio.com/items?itemName=kosz78.nim)
-[![Installs](http://vsmarketplacebadge.apphb.com/installs/kosz78.nim.svg)](https://marketplace.visualstudio.com/items?itemName=kosz78.nim)
+[![Version](https://vsmarketplacebadge.apphb.com/version/kosz78.nim.svg)](https://marketplace.visualstudio.com/items?itemName=kosz78.nim)
+[![Installs](https://vsmarketplacebadge.apphb.com/installs/kosz78.nim.svg)](https://marketplace.visualstudio.com/items?itemName=kosz78.nim)
 [![Ratings](https://vsmarketplacebadge.apphb.com/rating/kosz78.nim.svg)](https://vsmarketplacebadge.apphb.com/rating/kosz78.nim.svg)
 [![Build Status](https://travis-ci.org/pragmagic/vscode-nim.svg?branch=master)](https://travis-ci.org/pragmagic/vscode-nim)
 
