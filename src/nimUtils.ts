@@ -77,7 +77,10 @@ export function getBinPath(tool: string): string {
             try {
                 let nimPath;
                 if (process.platform === 'darwin') {
-                    nimPath = _pathesCache[tool].slice(0, _pathesCache[tool].length - 3) + cp.execFileSync('readlink', [_pathesCache[tool]]).toString().trim();
+                    nimPath = cp.execFileSync('readlink', [_pathesCache[tool]]).toString().trim();
+                    if (nimPath.length > 0 && !path.isAbsolute(nimPath)) {
+                        nimPath = path.normalize(path.join(path.dirname(_pathesCache[tool]), nimPath));
+                    }
                 } else if (process.platform === 'linux') {
                     nimPath = cp.execFileSync('readlink', ['-f', _pathesCache[tool]]).toString().trim();
                 } else {
