@@ -1,6 +1,6 @@
 # ChangeLog
 
-## 0.5.24 (26 Jun 2017)
+## 0.5.25 (27 Jun 2017)
 * Fixing 'nim' binary could not be found in PATH on OS X [PR #52](https://github.com/pragmagic/vscode-nim/pull/52)
 
 ## 0.5.23 (30 May 2017)
