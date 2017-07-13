@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 0.5.26 (14 Jul 2017)
+* Fix indentation rules for VSCode 1.14
+
 ## 0.5.25 (27 Jun 2017)
 * Fixing 'nim' binary could not be found in PATH on OS X [PR #52](https://github.com/pragmagic/vscode-nim/pull/52)
 

@@ -45,6 +45,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
             decreaseIndentPattern: /^\s*(((return|break|continue|raise)\n)|((elif|else|except|finally)\b.*:))\s*$/
         },
         wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
+        onEnterRules: [{
+            beforeText: /^\s*$/,
+			action: { indentAction: vscode.IndentAction.None }
+        }]
     });
 
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
