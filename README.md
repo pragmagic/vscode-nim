@@ -30,7 +30,7 @@ _Note_: It is recommended to turn `Auto Save` on in Visual Studio Code (`File ->
 ### Options
 
 The following Visual Studio Code settings are available for the Nim extension.  These can be set in user preferences (`cmd+,`) or workspace settings (`.vscode/settings.json`).
-* `nim.buildOnSave` - perform build task from `tasks.json` file, to use this options you need declare build task according to [Tasks Documentaiton](https://code.visualstudio.com/docs/editor/taskshttps://code.visualstudio.com/docs/editor/tasks), for example:
+* `nim.buildOnSave` - perform build task from `tasks.json` file, to use this options you need declare build task according to [Tasks Documentation](https://code.visualstudio.com/docs/editor/tasks), for example:
 	```json
 	{
 		"version": "0.1.0",
@@ -43,7 +43,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 	}
 	```
 * `nim.lintOnSave` - perform the project check for errors on save
-* `nim.project` - optional array of projects file, if nim.project not defined then all nim files will be used as separate project
+* `nim.project` - optional array of projects file, if nim.project is not defined then all nim files will be used as separate project
 * `nim.licenseString` - optional license text that will be inserted on nim file creation
 
 
