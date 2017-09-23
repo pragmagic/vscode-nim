@@ -69,6 +69,8 @@ function vscodeKindFromNimSym(kind: string): vscode.CompletionItemKind {
       return vscode.CompletionItemKind.Class;
     case 'skVar':
       return vscode.CompletionItemKind.Field;
+    case 'skFunc':
+      return vscode.CompletionItemKind.Function;
   }
   return vscode.CompletionItemKind.Property;
 }
