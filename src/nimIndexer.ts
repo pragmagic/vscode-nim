@@ -188,6 +188,8 @@ function vscodeKindFromNimSym(kind: string): vscode.SymbolKind {
             return vscode.SymbolKind.Class;
         case 'skVar':
             return vscode.SymbolKind.Variable;
+        case 'skFunc':
+            return vscode.SymbolKind.Function;
     }
     return vscode.SymbolKind.Property;
 }

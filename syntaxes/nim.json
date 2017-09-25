@@ -71,7 +71,7 @@
       "name": "meta.proc.nim",
       "patterns": [
         {
-          "begin": "\\b(proc|method|template|macro|iterator|converter)\\s+\\`?([^\\:\\{\\s\\`\\*\\(]*)\\`?(\\s*\\*)?\\s*(\\(|\\=|:|\\[|\\n|\\{)",
+          "begin": "\\b(proc|method|template|macro|iterator|converter|func)\\s+\\`?([^\\:\\{\\s\\`\\*\\(]*)\\`?(\\s*\\*)?\\s*(\\(|\\=|:|\\[|\\n|\\{)",
           "captures": {
             "1": {
               "name": "storage.type.proc.nim"
@@ -184,7 +184,7 @@
     },
     {
       "comment": "Function types",
-      "match": "\\b(proc|iterator|method|template|macro)\\b",
+      "match": "\\b(proc|iterator|method|template|macro|func)\\b",
       "name": "storage.type.function.nim"
     },
     {
