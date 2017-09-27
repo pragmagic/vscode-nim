@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 0.5.27 (27 Sep 2017)
+* Add "func" keyword [PR #60](https://github.com/pragmagic/vscode-nim/pull/60)
+
 ## 0.5.26 (14 Jul 2017)
 * Fix indentation rules for VSCode 1.14
 
