@@ -159,7 +159,7 @@
     },
     {
       "comment": "Other keywords.",
-      "match": "(\\b(addr|as|atomic|bind|cast|const|converter|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|var)\\b)",
+      "match": "(\\b(addr|as|atomic|bind|cast|const|converter|concept|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|using|var)\\b)",
       "name": "keyword.other.nim"
     },
     {
