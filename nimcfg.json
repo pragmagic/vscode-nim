@@ -20,6 +20,10 @@
         ["\"", "\""]
     ],
     "folding": {
-        "offSide": true
-    }
+        "offSide": true,
+		"markers": {
+            "start": "^\\s*#region",
+            "end": "^\\s*#endregion"
+        }
+	}
 }
