@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 0.5.28 (18 Jan 2018)
+* Improve syntax highlighting and folding (PRs #64, #66, #75)
+
 ## 0.5.27 (27 Sep 2017)
 * Add "func" keyword [PR #60](https://github.com/pragmagic/vscode-nim/pull/60)
 
