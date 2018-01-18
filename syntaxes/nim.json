@@ -25,7 +25,7 @@
         "name": "comment.block.nested.nim"
       }]
     },
-        {
+    {
       "begin": "(^[ \\t]+)?(?=##)",
       "beginCaptures": {
         "1": {
@@ -45,7 +45,8 @@
           "name": "comment.line.number-sign.doc-comment.nim"
         }
       ]
-    },    {
+    },
+    {
       "begin": "(^[ \\t]+)?(?=#[^\\[])",
       "beginCaptures": {
         "1": {
@@ -74,7 +75,7 @@
           "begin": "\\b(proc|method|template|macro|iterator|converter|func)\\s+\\`?([^\\:\\{\\s\\`\\*\\(]*)\\`?(\\s*\\*)?\\s*(\\(|\\=|:|\\[|\\n|\\{)",
           "captures": {
             "1": {
-              "name": "storage.type.proc.nim"
+              "name": "keyword.other"
             },
             "2": {
               "name": "entity.name.function.nim"
@@ -138,8 +139,20 @@
       "match": "\\b\\s*(\\*)(?:\\s*(?=[,:])|\\s+(?=[=]))"
     },
     {
+      "comment": "Export qualifier following a type def.",
+      "match": "\\b([A-Z]\\w+)(\\*)",
+      "captures": {
+        "1": {
+          "name": "support.type.nim"
+        },
+        "2": {
+          "name": "keyword.control.export"
+        }
+      }
+    },
+    {
       "comment": "Language Constants.",
-      "match": "\\b(true|false|inf|nil)\\b",
+      "match": "\\b(true|false|Inf|NegInf|NaN|nil)\\b",
       "name": "constant.language.nim"
     },
     {
@@ -159,7 +172,7 @@
     },
     {
       "comment": "Other keywords.",
-      "match": "(\\b(addr|as|atomic|bind|cast|const|converter|concept|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|using|var)\\b)",
+      "match": "(\\b(addr|as|asm|atomic|bind|cast|const|converter|concept|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|using|var|tuple|iterator|macro|func|method|proc|template)\\b)",
       "name": "keyword.other.nim"
     },
     {
@@ -174,18 +187,13 @@
     },
     {
       "comment": "Built-in, concrete types.",
-      "match": "\\b(((uint|int|float)(8|16|32|64)?)|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed)\\b",
+      "match": "\\b(((uint|int)(8|16|32|64)?)|float(32|64)?|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed)\\b",
       "name": "storage.type.concrete.nim"
     },
     {
       "comment": "Built-in, generic types.",
-      "match": "\\b(range|array|seq|tuple|natural|set|ref|ptr|pointer)\\b",
+      "match": "\\b(range|array|seq|set|pointer)\\b",
       "name": "storage.type.generic.nim"
-    },
-    {
-      "comment": "Function types",
-      "match": "\\b(proc|iterator|method|template|macro|func)\\b",
-      "name": "storage.type.function.nim"
     },
     {
       "comment": "Special types.",
@@ -214,7 +222,13 @@
       "include": "#string_quoted_triple"
     },
     {
+      "include": "#extended_string_quoted_triple_raw"
+    },
+    {
       "include": "#string_quoted_double_raw"
+    },
+    {
+      "include": "#extended_string_quoted_double_raw"
     },
     {
       "include": "#string_quoted_double"
@@ -1047,25 +1061,38 @@
       ]
     },
     "string_quoted_double_raw": {
-      "begin": "r\"",
+      "begin": "\\br\"",
       "beginCaptures": {
         "0": {
           "name": "punctuation.definition.string.begin.nim"
         }
       },
       "comment": "Raw Double Quoted String",
-      "end": "\"",
+      "end": "[^\"]\"(?!\")",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
         }
       },
-      "name": "string.quoted.double.raw.nim",
-      "patterns": [
-        {
-          "match": "\"\""
+      "name": "string.quoted.double.raw.nim"
+    },
+    "extended_string_quoted_double_raw": {
+      "begin": "\\b(\\w+)(\")(?!\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.nim"
         }
-      ]
+      },
+      "end": "[^\"]\"(?!\")",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.double.raw.nim"
     },
     "string_quoted_single": {
       "begin": "'",
@@ -1120,6 +1147,24 @@
         }
       },
       "comment": "Raw Triple Quoted String",
+      "end": "\"\"\"(?!\")",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.triple.raw.nim"
+    },
+    "extended_string_quoted_triple_raw": {
+      "begin": "\\b(\\w+)(\"\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
       "end": "\"\"\"(?!\")",
       "endCaptures": {
         "0": {
