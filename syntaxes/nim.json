@@ -216,6 +216,23 @@
       "name": "support.function.any-method.nim"
     },
     {
+      "comment": "Empty raw string",
+      "match": "\\br\"\"(?!\")",
+      "name": "string.quoted.double.raw.nim"
+    },
+    {
+      "comment": "Empty extended raw string",
+      "match": "\\b(\\w+)(\"\")(?!\")",
+      "captures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        },
+        "2": {
+          "name": "string.quoted.double.raw.nim"
+        }
+      }
+    },
+    {
       "include": "#string_quoted_triple_raw"
     },
     {
@@ -1147,7 +1164,7 @@
         }
       },
       "comment": "Raw Triple Quoted String",
-      "end": "\"\"\"(?!\")",
+      "end": "\"\"\"",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1165,7 +1182,7 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "\"\"\"(?!\")",
+      "end": "\"\"\"",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
