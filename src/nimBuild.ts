@@ -57,7 +57,14 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
             } else {
                 executors[project] = null;
                 try {
-                    var ret = callback(out.split(os.EOL));
+                    let split = out.split(os.EOL);
+                    if (split.length == 1) {
+                        var lfSplit = split[0].split("\n");
+                        if(lfSplit.length > split.length)
+                            split = lfSplit;
+                    }
+
+                    var ret = callback(split);
                     resolve(ret);
                 } catch (e) {
                     reject(e);
