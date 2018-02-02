@@ -58,9 +58,9 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
                 executors[project] = null;
                 try {
                     let split = out.split(os.EOL);
-                    if (split.length == 1) {
-                        var lfSplit = split[0].split("\n");
-                        if(lfSplit.length > split.length)
+                    if (split.length === 1) {
+                        var lfSplit = split[0].split('\n');
+                        if (lfSplit.length > split.length)
                             split = lfSplit;
                     }
 
