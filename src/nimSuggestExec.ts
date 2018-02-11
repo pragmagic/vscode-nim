@@ -15,6 +15,7 @@ import elrpc = require('./elrpc/elrpc');
 import sexp = require('./elrpc/sexp');
 import { prepareConfig, getProjectFile, isProjectMode, getNimExecPath, removeDirSync, correctBinname } from './nimUtils';
 import { hideNimStatus, showNimStatus } from './nimStatus';
+import { getCasingConfig } from './nimCasing';
 
 class NimSuggestProcessDescription {
     process: cp.ChildProcess;
@@ -189,6 +190,8 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
         let ret = await desc.rpc.callMethod(suggestCmd, { kind: 'string', str: normalizedFilename }, { kind: 'number', n: line }, { kind: 'number', n: column }, { kind: 'string', str: dirtyFile });
         trace(desc.process.pid, projectFile + '=' + suggestCmd + ' ' + normalizedFilename, ret);
 
+        let casingConfig = getCasingConfig();
+
         var result: NimSuggestResult[] = [];
         if (ret != null) {
             if (ret instanceof Array) {
@@ -198,7 +201,14 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
                         var item = new NimSuggestResult();
                         item.answerType = parts[0];
                         item.suggest = parts[1];
-                        item.names = parts[2];
+                        item.names = [];
+
+                        if (parts[2].length > 1)
+                            item.names.push(casingConfig['skModule'](parts[2][0]));
+
+                        for (let i = 1; i < parts[2].length; i++)
+                            item.names.push(casingConfig[item.suggest](parts[2][i]));
+
                         item.path = parts[3].replace(/\\,\\/g, '\\');
                         item.type = parts[4];
                         item.line = parts[5];

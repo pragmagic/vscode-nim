@@ -11,6 +11,7 @@ import os = require('os');
 import cp = require('child_process');
 import vscode = require('vscode');
 import { showNimStatus, hideNimStatus } from './nimStatus';
+import { configureCasing } from './nimCasing';
 
 let _pathesCache: { [tool: string]: string; } = {};
 var _projects: string[] = [];
@@ -66,6 +67,7 @@ export function prepareConfig(): void {
             _projects.push(path.isAbsolute(projects) ? projects : path.resolve(vscode.workspace.rootPath, projects));
         }
     }
+    configureCasing(config);
 }
 
 export function getBinPath(tool: string): string {
