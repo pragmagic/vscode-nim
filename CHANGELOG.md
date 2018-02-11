@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 0.5.29 (03 Feb 2018)
+* Improve syntax highlighting, fix linting for the latest dev version of Nim (PRs #76, #78)
+
 ## 0.5.28 (18 Jan 2018)
 * Improve syntax highlighting and folding (PRs #64, #66, #75)
 
