@@ -23,6 +23,22 @@ export function getNimExecPath(): string {
     return path;
 }
 
+/**
+ * Returns full path to nimpretty executables or '' if file not found.
+ */
+export function getNimPrettyExecPath(): string {
+    let toolname = 'nimpretty';
+    if (!_pathesCache[toolname]) {
+        let nimPrettyPath = path.resolve(path.dirname(getNimExecPath()), correctBinname(toolname));
+        if (fs.existsSync(nimPrettyPath)) {
+            _pathesCache[toolname] = nimPrettyPath;
+        } else {
+            _pathesCache[toolname] = '';
+        }
+    }
+    return _pathesCache[toolname];
+}
+
 export function getProjectFile(filename: string) {
     if (filename && !path.isAbsolute(filename)) {
         filename = path.relative(vscode.workspace.rootPath, filename);
@@ -39,6 +55,9 @@ export function getProjectFile(filename: string) {
     return _projects[0];
 }
 
+/**
+ * Returns temporary file path of edited document.
+ */
 export function getDirtyFile(document: vscode.TextDocument): string {
     var dirtyFilePath = path.normalize(path.join(os.tmpdir(), 'vscodenimdirty.nim'));
     fs.writeFileSync(dirtyFilePath, document.getText());
