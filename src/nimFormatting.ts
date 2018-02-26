@@ -21,14 +21,14 @@ export class NimFormattingProvider implements vscode.DocumentFormattingEditProvi
       } else {
         let file = getDirtyFile(document);
         let res = cp.spawnSync(getNimPrettyExecPath(), ['--backup:OFF', file], { cwd: vscode.workspace.rootPath });
-        
-        if (res.status != 0) {
+
+        if (res.status !== 0) {
           reject(res.error);
         } else {
           let ext = path.extname(file);
-          let prettyFile = path.join(path.dirname(file), path.basename(file, ext) + ".pretty" + ext);
+          let prettyFile = path.join(path.dirname(file), path.basename(file, ext) + '.pretty' + ext);
           if (!fs.existsSync(prettyFile)) {
-            reject(prettyFile + " file not found");
+            reject(prettyFile + ' file not found');
           } else {
             let content = fs.readFileSync(prettyFile, 'utf-8');
             let range = document.validateRange(new vscode.Range(new vscode.Position(0, 0), new vscode.Position(1000000, 1000000)));
