@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 0.5.30 (26 Feb 2018)
+* Add experimental [nimpretty](https://github.com/nim-lang/Nim/blob/devel/tools/nimpretty.nim) support for code formatting (#79), `nimpretty` should be compiled and placed together with nim executable.
+
 ## 0.5.29 (03 Feb 2018)
 * Improve syntax highlighting, fix linting for the latest dev version of Nim (PRs #76, #78)
 
