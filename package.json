@@ -24,7 +24,7 @@
     },
     "bugs": {
         "url": "https://github.com/pragmagic/vscode-nim/issues"
-	},
+    },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
         "compile": "tsc -watch -p ./",
@@ -32,7 +32,8 @@
         "lint": "node ./node_modules/tslint/bin/tslint ./src/*.ts ./test/*.ts"
     },
     "dependencies": {
-        "nedb": "1.8.0"
+        "nedb": "1.8.0",
+        "glob": "^7.1.2"
     },
     "devDependencies": {
         "typescript": "^2.0.3",
@@ -40,7 +41,8 @@
         "mocha": "^2.3.3",
         "tslint": "^4.3.1",
         "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32"
+        "@types/mocha": "^2.2.32",
+        "@types/glob": "^5.0.35"
     },
     "engines": {
         "vscode": "^1.7.0"

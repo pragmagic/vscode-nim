@@ -10,6 +10,7 @@ import path = require('path');
 import os = require('os');
 import cp = require('child_process');
 import vscode = require('vscode');
+import glob = require('glob');
 import { showNimStatus, hideNimStatus } from './nimStatus';
 
 let _pathesCache: { [tool: string]: string; } = {};
@@ -72,6 +73,14 @@ export function getProjects(): string[] {
     return _projects;
 }
 
+export function parsePath(p: string): string[] {
+    if (path.isAbsolute(p)) return [p];
+    if (glob.hasMagic(p)) {
+        return glob.sync(p, {cwd: vscode.workspace.rootPath});
+    }
+    return [path.resolve(vscode.workspace.rootPath, p)];
+}
+
 export function prepareConfig(): void {
     let config = vscode.workspace.getConfiguration('nim');
     let projects = config['project'];
@@ -79,10 +88,10 @@ export function prepareConfig(): void {
     if (projects) {
         if (projects instanceof Array) {
             projects.forEach((project) => {
-                _projects.push(path.isAbsolute(project) ? project : path.resolve(vscode.workspace.rootPath, project));
+                _projects.push(...parsePath(project));
             });
         } else {
-            _projects.push(path.isAbsolute(projects) ? projects : path.resolve(vscode.workspace.rootPath, projects));
+            _projects.push(...parsePath(projects));
         }
     }
 }

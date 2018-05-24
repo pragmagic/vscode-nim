@@ -47,7 +47,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 	}
 	```
 * `nim.lintOnSave` - perform the project check for errors on save
-* `nim.project` - optional array of projects file, if nim.project is not defined then all nim files will be used as separate project
+* `nim.project` - optional array of projects file/glob paths, if nim.project is not defined then all nim files will be used as separate project
 * `nim.licenseString` - optional license text that will be inserted on nim file creation
 
 
@@ -58,7 +58,7 @@ The following Visual Studio Code settings are available for the Nim extension.  
 	"nim.buildOnSave": false,
 	"nim.buildCommand": "c",
 	"nim.lintOnSave": true,
-	"nim.project": ["project.nim", "project2.nim"],
+	"nim.project": ["project.nim", "project2.nim", "src/**/*.nim"],
 	"nim.licenseString": "# Copyright 2017.\n\n"
 }
 ```
