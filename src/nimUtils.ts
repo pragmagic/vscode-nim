@@ -90,26 +90,26 @@ export function prepareConfig(): void {
 export function getBinPath(tool: string): string {
     if (_pathesCache[tool]) return _pathesCache[tool];
     if (process.env['PATH']) {
-        var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
-        _pathesCache[tool] = pathparts.map(dir => path.join(dir, correctBinname(tool))).filter(candidate => fs.existsSync(candidate))[0];
         if (process.platform !== 'win32') {
             try {
                 let nimPath;
                 if (process.platform === 'darwin') {
-                    nimPath = cp.execFileSync('readlink', [_pathesCache[tool]]).toString().trim();
+                    nimPath = cp.execFileSync('which', [tool]).toString().trim();
                     if (nimPath.length > 0 && !path.isAbsolute(nimPath)) {
                         nimPath = path.normalize(path.join(path.dirname(_pathesCache[tool]), nimPath));
                     }
                 } else if (process.platform === 'linux') {
-                    nimPath = cp.execFileSync('readlink', ['-f', _pathesCache[tool]]).toString().trim();
+                    nimPath = cp.execFileSync('which', [tool]).toString().trim();
                 } else {
-                    nimPath = cp.execFileSync('readlink', [_pathesCache[tool]]).toString().trim();
+                    nimPath = cp.execFileSync('which', [tool]).toString().trim();
                 }
 
                 if (nimPath.length > 0) {
                     _pathesCache[tool] = nimPath;
                 }
             } catch (e) {
+                console.error(e);
+                return '';
                 // ignore exception
             }
         }
