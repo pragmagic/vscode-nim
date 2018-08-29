@@ -148,10 +148,11 @@ export function isNimSuggestVersion(version: string): boolean {
     return true;
 }
 
-export function initNimSuggest(ctx: vscode.ExtensionContext) {
+export async function initNimSuggest(ctx: vscode.ExtensionContext) {
     prepareConfig();
     // let check nimsuggest related nim executable
-    let nimSuggestNewPath = path.resolve(path.dirname(getNimExecPath()), correctBinname('nimsuggest'));
+    let binPath = await getNimExecPath()
+    let nimSuggestNewPath = path.resolve(path.dirname(binPath), correctBinname('nimsuggest'));
     if (fs.existsSync(nimSuggestNewPath)) {
         _nimSuggestPath = nimSuggestNewPath;
         let versionOutput = cp.spawnSync(getNimSuggestPath(), ['--version'], { cwd: vscode.workspace.rootPath }).output.toString();

@@ -32,6 +32,8 @@
         "lint": "node ./node_modules/tslint/bin/tslint ./src/*.ts ./test/*.ts"
     },
     "dependencies": {
+        "bluebird": "^3.5.1",
+        "lstat": "^1.0.0",
         "nedb": "1.8.0"
     },
     "devDependencies": {
