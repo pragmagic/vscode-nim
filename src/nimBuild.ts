@@ -23,12 +23,10 @@ export interface ICheckResult {
 
 let executors: { [project: string]: { initialized: boolean, process: cp.ChildProcess } } = {};
 
-function nimExec(project: string, command: string, args: string[], useStdErr: boolean, callback: (lines: string[]) => any) {
+async function  nimExec(project: string, command: string, args: string[], useStdErr: boolean, callback: (lines: string[]) => any) {
+    let binPath = await getNimExecPath()
     return new Promise((resolve, reject) => {
-        if (!getNimExecPath()) {
-            return resolve([]);
-        }
-        var cwd = vscode.workspace.rootPath;
+            var cwd = vscode.workspace.rootPath;
         if (executors[project]) {
             if (executors[project].initialized) {
                 let ps = executors[project].process;
@@ -40,7 +38,7 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
         } else {
             executors[project] = { initialized: false, process: null };
         }
-        let executor = cp.spawn(getNimExecPath(), [command, ...args], { cwd: cwd });
+        let executor = cp.spawn(binPath, [command, ...args], { cwd: cwd });
         executors[project].process = executor;
         executors[project].initialized = true;
         executor.on('error', (err) => {
@@ -81,6 +79,9 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
                 out += data.toString();
             });
         }
+        
+       
+        
     });
 }
 

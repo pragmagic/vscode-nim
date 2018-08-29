@@ -45,7 +45,6 @@ export function showNimStatus(message: string, command: string, tooltip?: string
 
 export function showNimProgress(message: string) {
   progressBarEntry = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, Number.MIN_VALUE);
-  console.log(message);
   progressBarEntry.text = message;
   progressBarEntry.tooltip = message;
   progressBarEntry.show();
