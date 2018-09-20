@@ -8,22 +8,18 @@
 import vscode = require('vscode');
 import cp = require('child_process');
 import path = require('path');
-import os = require('os');
 import fs = require('fs');
-import net = require('net');
 import elrpc = require('./elrpc/elrpc');
-import sexp = require('./elrpc/sexp');
-import { prepareConfig, getProjectFile, isProjectMode, getNimExecPath, removeDirSync, correctBinname } from './nimUtils';
-import { hideNimStatus, showNimStatus } from './nimStatus';
+import { prepareConfig, getProjectFile, isProjectMode, getNimExecPath, correctBinname } from './nimUtils';
 
 class NimSuggestProcessDescription {
-    process: cp.ChildProcess;
-    rpc: elrpc.EPCPeer;
+    process?: cp.ChildProcess;
+    rpc?: elrpc.EPCPeer;
 }
 
-let nimSuggestProcessCache: { [project: string]: PromiseLike<NimSuggestProcessDescription> } = {};
-var _nimSuggestPath: string = undefined;
-var _nimSuggestVersion: string = undefined;
+let nimSuggestProcessCache: { [project: string]: PromiseLike<NimSuggestProcessDescription> | undefined } = {};
+var _nimSuggestPath: string = '';
+var _nimSuggestVersion: string = '';
 
 export enum NimSuggestType {
     /** Suggest from position */
@@ -52,29 +48,29 @@ export class NimSuggestResult {
 
     /** Three characters indicating the type of returned answer
      * (e.g. def for definition, sug for suggestion, etc). */
-    answerType: string;
+    answerType: string = '';
 
     /** Type of the symbol. This can be skProc, skLet, and just
      *  about any of the enums defined in the module compiler/ast.nim. */
-    suggest: string;
+    suggest: string = '';
 
     /** Full qualitifed path of the symbol.If you are querying a symbol
      * defined in the proj.nim file, this would have the form [proj, symbolName]. */
-    names: string[];
+    names: string[] = [];
 
     /** Type / signature.For variables and enums this will contain the type
      * of the symbol, for procs, methods and templates this will contain the
      * full unique signature (e.g.proc(File)). */
-    type: string;
+    type: string = '';
 
     /** Full path to the file containing the symbol. */
-    path: string;
+    path: string = '';
 
     /** Line where the symbol is located in the file.Lines start to count at 1. */
-    line: number;
+    line: number = 1;
 
     /** Column where the symbol is located in the file.Columns start to count at 0. */
-    column: number;
+    column: number = 0;
 
     /** Docstring for the symbol if available or the empty string.
      * To differentiate the docstring from end of answer in server mode,
@@ -85,7 +81,7 @@ export class NimSuggestResult {
      * Also, you won't find raw \n characters breaking the one answer per line format.
      * Instead you will need to parse sequences in the form \xHH, where HH
      * is a hexadecimal value (e.g. newlines generate the sequence \x0A). */
-    documentation: string;
+    documentation: string = '';
 
     get range(): vscode.Range {
         return new vscode.Range(this.line - 1, this.column, this.line - 1, this.column);
@@ -174,7 +170,7 @@ function trace(pid: number, projectFile: string, msg: any): void {
 }
 
 export async function execNimSuggest(suggestType: NimSuggestType, filename: string,
-    line: number, column: number, dirtyFile?: string): Promise<NimSuggestResult[]> {
+    line: number, column: number, dirtyFile?: string): Promise<NimSuggestResult[] | undefined> {
     var nimSuggestExec = getNimSuggestPath();
     // if nimsuggest not found just ignore
     if (!nimSuggestExec) {
@@ -185,41 +181,48 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
         let normalizedFilename = filename.replace(/\\+/g, '/');
         let desc = await getNimSuggestProcess(projectFile);
         let suggestCmd = NimSuggestType[suggestType];
-        trace(desc.process.pid, projectFile, suggestCmd + ' ' + normalizedFilename + ':' + line + ':' + column);
-        let ret = await desc.rpc.callMethod(suggestCmd, { kind: 'string', str: normalizedFilename }, { kind: 'number', n: line }, { kind: 'number', n: column }, { kind: 'string', str: dirtyFile });
-        trace(desc.process.pid, projectFile + '=' + suggestCmd + ' ' + normalizedFilename, ret);
-
+        if (desc && desc.process) {
+            trace(desc.process.pid, projectFile, suggestCmd + ' ' + normalizedFilename + ':' + line + ':' + column);
+        }
         var result: NimSuggestResult[] = [];
-        if (ret != null) {
-            if (ret instanceof Array) {
-                for (var i = 0; i < ret.length; i++) {
-                    var parts = ret[i];
-                    if (parts.length >= 8) {
-                        var item = new NimSuggestResult();
-                        item.answerType = parts[0];
-                        item.suggest = parts[1];
-                        item.names = parts[2];
-                        item.path = parts[3].replace(/\\,\\/g, '\\');
-                        item.type = parts[4];
-                        item.line = parts[5];
-                        item.column = parts[6];
-                        var doc = parts[7];
-                        if (doc !== '') {
-                            doc = doc.replace(/\`\`/g, '`');
-                            doc = doc.replace(/\.\. code-block:: (\w+)\r?\n(( .*\r?\n?)+)/g, '```$1\n$2\n```\n');
-                            doc = doc.replace(/\`([^\<\`]+)\<([^\>]+)\>\`\_/g, '\[$1\]\($2\)');
+        if (desc && desc.rpc) {
+            let ret = await desc.rpc.callMethod(suggestCmd, { kind: 'string', str: normalizedFilename }, { kind: 'number', n: line }, { kind: 'number', n: column }, { kind: 'string', str: dirtyFile as string });
+
+            if (desc.process) {
+                trace(desc.process.pid, projectFile + '=' + suggestCmd + ' ' + normalizedFilename, ret);
+            }
+
+            if (ret != null) {
+                if (ret instanceof Array) {
+                    for (var i = 0; i < ret.length; i++) {
+                        var parts = ret[i];
+                        if (parts.length >= 8) {
+                            var item = new NimSuggestResult();
+                            item.answerType = parts[0];
+                            item.suggest = parts[1];
+                            item.names = parts[2];
+                            item.path = parts[3].replace(/\\,\\/g, '\\');
+                            item.type = parts[4];
+                            item.line = parts[5];
+                            item.column = parts[6];
+                            var doc = parts[7];
+                            if (doc !== '') {
+                                doc = doc.replace(/\`\`/g, '`');
+                                doc = doc.replace(/\.\. code-block:: (\w+)\r?\n(( .*\r?\n?)+)/g, '```$1\n$2\n```\n');
+                                doc = doc.replace(/\`([^\<\`]+)\<([^\>]+)\>\`\_/g, '\[$1\]\($2\)');
+                            }
+                            item.documentation = doc;
+                            result.push(item);
                         }
-                        item.documentation = doc;
-                        result.push(item);
                     }
+                } else if (ret === 'EPC Connection closed') {
+                    console.error(ret);
+                    await closeNimSuggestProcess(filename);
+                } else {
+                    var res = new NimSuggestResult();
+                    res.suggest = '' + ret;
+                    result.push(res);
                 }
-            } else if (ret === 'EPC Connection closed') {
-                console.error(ret);
-                await closeNimSuggestProcess(filename);
-            } else {
-                var item = new NimSuggestResult();
-                item.suggest = '' + ret;
-                result.push(item);
             }
         }
         if (!isProjectMode() &&
@@ -236,8 +239,14 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
 export async function closeAllNimSuggestProcesses(): Promise<void> {
     for (var project in nimSuggestProcessCache) {
         let desc = await nimSuggestProcessCache[project];
-        desc.rpc.stop();
-        desc.process.kill();
+        if (desc) {
+            if (desc.rpc) {
+                desc.rpc.stop();
+            }
+            if (desc.process) {
+                desc.process.kill();
+            }
+        }
     }
     nimSuggestProcessCache = {};
 }
@@ -246,13 +255,19 @@ export async function closeNimSuggestProcess(filename: string): Promise<void> {
     var file = getProjectFile(filename);
     if (nimSuggestProcessCache[file]) {
         let desc = await nimSuggestProcessCache[file];
-        desc.rpc.stop();
-        desc.process.kill();
+        if (desc) {
+            if (desc.rpc) {
+                desc.rpc.stop();
+            }
+            if (desc.process) {
+                desc.process.kill();
+            }
+        }
         nimSuggestProcessCache[file] = undefined;
     }
 }
 
-async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProcessDescription> {
+async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProcessDescription | undefined> {
     if (!nimSuggestProcessCache[nimProject]) {
         nimSuggestProcessCache[nimProject] = new Promise<NimSuggestProcessDescription>((resolve, reject) => {
             let nimConfig = vscode.workspace.getConfiguration('nim');
@@ -288,8 +303,10 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
                     console.error('nimsuggest closed with code: ' + code + ', signal: ' + signal);
                 }
                 if (nimSuggestProcessCache[nimProject]) {
-                    nimSuggestProcessCache[nimProject].then((desc) => {
-                        desc.rpc.stop();
+                    (<Promise<NimSuggestProcessDescription>> nimSuggestProcessCache[nimProject]).then((desc) => {
+                        if (desc && desc.rpc) {
+                            desc.rpc.stop();
+                        }
                     });
                 }
                 reject();

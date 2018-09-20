@@ -28,7 +28,7 @@ export function toJS(sexp: SExp): any {
     }
 }
 
-export function toString(sexp: SExp) {
+export function toString(sexp: SExp): any {
     switch (sexp.kind) {
         case 'cons':
             return '(' + toString(sexp.car) + ' . ' + toString(sexp.cdr) + ')';
@@ -55,7 +55,7 @@ export function parseSExp(input: string): /*SExp*/ any[] | string {
 
     function parseSymbol(): /*SExpIdent | SExpNumber | SExpNil*/ string | number | null {
         let symbolStart = ptr;
-        while (ptr < input.length && !(input[ptr] == ' ' || input[ptr] == ')')) {
+        while (ptr < input.length && !(input[ptr] === ' ' || input[ptr] === ')')) {
             if (input[ptr] === '\\' && input[ptr + 1] === ' ')
                 ptr += 2;
             else
@@ -91,7 +91,7 @@ export function parseSExp(input: string): /*SExp*/ any[] | string {
                 // string += input[ptr++];
                 ptr++;
         }
-        let str = input.substring(startPos, ptr);
+        // let str = input.substring(startPos, ptr);
         // return { kind: "string", str: hasEscapes ? JSON.parse("\"" + string + "\"") : string };
         return hasEscapes ? JSON.parse(input.substring(startPos - 1, ptr + 1)) : input.substring(startPos, ptr);
     }
@@ -101,7 +101,7 @@ export function parseSExp(input: string): /*SExp*/ any[] | string {
         let items = [];
         let cons = false;
         while (ptr < input.length) {
-            if (input[ptr] != '(' && input[ptr] != ')' && input[ptr] != ' ' && input[ptr] != '"') {
+            if (input[ptr] !== '(' && input[ptr] !== ')' && input[ptr] !== ' ' && input[ptr] !== '"') {
                 let sym = parseSymbol();
                 // if (sym.kind == "ident" && sym.ident == ".") {
                 if (sym === '.') {

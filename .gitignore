@@ -4,3 +4,4 @@ node_modules
 nimsuggest/nimcache
 nimsuggest/nimsuggest.exe
 nimsuggest/nimsuggest
+*.vsix

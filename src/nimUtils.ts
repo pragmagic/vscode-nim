@@ -10,7 +10,6 @@ import path = require('path');
 import os = require('os');
 import cp = require('child_process');
 import vscode = require('vscode');
-import { showNimStatus, hideNimStatus } from './nimStatus';
 
 let _pathesCache: { [tool: string]: string; } = {};
 var _projects: string[] = [];
@@ -21,6 +20,38 @@ export function getNimExecPath(): string {
         vscode.window.showInformationMessage('No \'nim\' binary could be found in PATH environment variable');
     }
     return path;
+}
+
+/**
+ * Returns true if path related to any workspace folders,
+ *
+ * @param filePath absolute file path
+ */
+export function isWorkspaceFile(filePath: string): boolean {
+    if (vscode.workspace.workspaceFolders) {
+        for (const wsFolder of vscode.workspace.workspaceFolders) {
+            if (wsFolder.uri.scheme === 'file' &&
+                filePath.toLowerCase().startsWith(wsFolder.uri.fsPath.toLowerCase())) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Return filesystem file path.
+ *
+ * @param filePath relative or absolite file path
+ */
+export function toLocalFile(filePath: string): string {
+    if (!path.isAbsolute(filePath)) {
+        let workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filePath));
+        if (workspaceFolder) {
+            return workspaceFolder.uri.with({path: workspaceFolder.uri.path + '/' + filePath}).fsPath;
+        }
+    }
+    return filePath;
 }
 
 /**
@@ -40,9 +71,7 @@ export function getNimPrettyExecPath(): string {
 }
 
 export function getProjectFile(filename: string) {
-    if (filename && !path.isAbsolute(filename)) {
-        filename = path.relative(vscode.workspace.rootPath, filename);
-    }
+    filename = vscode.workspace.asRelativePath(filename);
     if (!isProjectMode()) {
         return filename;
     }
@@ -79,10 +108,10 @@ export function prepareConfig(): void {
     if (projects) {
         if (projects instanceof Array) {
             projects.forEach((project) => {
-                _projects.push(path.isAbsolute(project) ? project : path.resolve(vscode.workspace.rootPath, project));
+                _projects.push(toLocalFile(project));
             });
         } else {
-            _projects.push(path.isAbsolute(projects) ? projects : path.resolve(vscode.workspace.rootPath, projects));
+            _projects.push(toLocalFile(projects));
         }
     }
 }
@@ -137,4 +166,4 @@ export function removeDirSync(p: string): void {
         });
         fs.rmdirSync(p);
     }
-};
+}

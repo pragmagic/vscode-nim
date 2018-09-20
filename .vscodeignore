@@ -10,7 +10,7 @@ src/**
 *.db
 .gitignore
 tsconfig.json
-
+tslint.json
 node_modules/.bin/**
 node_modules/gulp*/**
 node_modules/vsce/**

@@ -7,21 +7,24 @@
 
 import vscode = require('vscode');
 import { getDirtyFile } from './nimUtils';
-import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec';
-
+import { execNimSuggest, NimSuggestType } from './nimSuggestExec';
 
 export class NimReferenceProvider implements vscode.ReferenceProvider {
 
   public provideReferences(document: vscode.TextDocument, position: vscode.Position, options: { includeDeclaration: boolean }, token: vscode.CancellationToken): Thenable<vscode.Location[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise<vscode.Location[]>((resolve, reject) => {
       vscode.workspace.saveAll(false).then(() => {
           execNimSuggest(NimSuggestType.use, document.fileName, position.line + 1, position.character, getDirtyFile(document))
             .then(result => {
-              var references = [];
-              result.forEach(item => {
-                references.push(item.location);
-              });
-              resolve(references);
+              var references: vscode.Location[] = [];
+              if (result) {
+                result.forEach(item => {
+                  references.push(item.location);
+                });
+                resolve(references);
+              } else {
+                resolve();
+              }
             })
             .catch(reason => reject(reason));
         });

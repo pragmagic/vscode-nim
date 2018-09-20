@@ -7,7 +7,7 @@
 
 import vscode = require('vscode');
 import { getDirtyFile } from './nimUtils';
-import { execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec';
+import { execNimSuggest, NimSuggestType } from './nimSuggestExec';
 
 export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
 
@@ -34,7 +34,7 @@ export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
 
           if (cursorX < 0) {
             if (cursorY - 1 < 0) {
-              resolve(null);
+              resolve();
               return;
             }
             line = lines[--cursorY];
@@ -70,37 +70,39 @@ export class NimSignatureHelpProvider implements vscode.SignatureHelpProvider {
         .then(items => {
           var signatures = new vscode.SignatureHelp();
           var isModule = 0;
-          if (items.length > 0)
+          if (items && items.length > 0)
             signatures.activeSignature = 0;
+          if (items) {
+            items.forEach(item => {
+              var signature = new vscode.SignatureInformation(item.type, item.documentation);
 
-          items.forEach(item => {
-            var signature = new vscode.SignatureInformation(item.type, item.documentation);
-
-            var genericsCleanType = '';
-            {
-              var insideGeneric = 0;
-              for (var i = 0; i < item.type.length; i++) {
-                if (item.type[i] === '[')
-                  insideGeneric++;
-                if (!insideGeneric)
-                  genericsCleanType += item.type[i];
-                if (item.type[i] === ']')
-                  insideGeneric--;
+              var genericsCleanType = '';
+              {
+                var insideGeneric = 0;
+                for (var i = 0; i < item.type.length; i++) {
+                  if (item.type[i] === '[')
+                    insideGeneric++;
+                  if (!insideGeneric)
+                    genericsCleanType += item.type[i];
+                  if (item.type[i] === ']')
+                    insideGeneric--;
+                }
               }
-            }
 
-            var signatureCutDown = /(proc|macro|template|iterator|func) \((.+: .+)*\)/.exec(genericsCleanType);
-            var parameters = signatureCutDown[2].split(', ');
-            parameters.forEach(parameter => {
-              signature.parameters.push(new vscode.ParameterInformation(parameter));
+              var signatureCutDown = /(proc|macro|template|iterator|func) \((.+: .+)*\)/.exec(genericsCleanType);
+              if (signatureCutDown) {
+                var parameters = signatureCutDown[2].split(', ');
+                parameters.forEach(parameter => {
+                  signature.parameters.push(new vscode.ParameterInformation(parameter));
+                });
+              }
+
+              if (item.names[0] === identBeforeDot || item.path.search('/' + identBeforeDot + '/') !== -1 || item.path.search('\\\\' + identBeforeDot + '\\\\') !== -1)
+                isModule++;
+
+              signatures.signatures.push(signature);
             });
-
-            if (item.names[0] === identBeforeDot || item.path.search('/' + identBeforeDot + '/') !== -1 || item.path.search('\\\\' + identBeforeDot + '\\\\') !== -1)
-              isModule++;
-
-            signatures.signatures.push(signature);
-          });
-
+          }
           signatures.activeParameter = isModule > 0 || identBeforeDot === '' ? currentArgument : currentArgument + 1;
 
           resolve(signatures);

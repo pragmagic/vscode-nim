@@ -6,15 +6,11 @@
 'use strict';
 
 import vscode = require('vscode');
-import Datastore = require('nedb');
-import path = require('path');
-import fs = require('fs');
 
 import { getDirtyFile } from './nimUtils';
 import { getFileSymbols, findWorkspaceSymbols } from './nimIndexer';
 
 export class NimWorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
-    private workspaceSymbols: { [file: string]: vscode.SymbolInformation[]; } = {};
 
     public provideWorkspaceSymbols(query: string, token: vscode.CancellationToken): Thenable<vscode.SymbolInformation[]> {
         return findWorkspaceSymbols(query);

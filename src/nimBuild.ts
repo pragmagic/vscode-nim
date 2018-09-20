@@ -7,10 +7,8 @@
 
 import vscode = require('vscode');
 import cp = require('child_process');
-import path = require('path');
 import os = require('os');
-import fs = require('fs');
-import { getNimExecPath, getProjectFile, getProjects, isProjectMode } from './nimUtils';
+import { isWorkspaceFile, getNimExecPath, getProjectFile, getProjects, isProjectMode } from './nimUtils';
 import { execNimSuggest, NimSuggestType, NimSuggestResult } from './nimSuggestExec';
 
 export interface ICheckResult {
@@ -21,7 +19,7 @@ export interface ICheckResult {
     severity: string;
 }
 
-let executors: { [project: string]: { initialized: boolean, process: cp.ChildProcess } } = {};
+let executors: { [project: string]: { initialized: boolean, process?: cp.ChildProcess } } = {};
 
 function nimExec(project: string, command: string, args: string[], useStdErr: boolean, callback: (lines: string[]) => any) {
     return new Promise((resolve, reject) => {
@@ -29,16 +27,14 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
             return resolve([]);
         }
         var cwd = vscode.workspace.rootPath;
-        if (executors[project]) {
-            if (executors[project].initialized) {
-                let ps = executors[project].process;
-                executors[project] = { initialized: false, process: null };
+        if (executors[project] && executors[project].initialized) {
+            let ps = executors[project].process;
+            executors[project] = { initialized: false, process: undefined };
+            if (ps) {
                 ps.kill('SIGKILL');
-            } else {
-                return reject([]);
             }
         } else {
-            executors[project] = { initialized: false, process: null };
+            executors[project] = { initialized: false, process: undefined };
         }
         let executor = cp.spawn(getNimExecPath(), [command, ...args], { cwd: cwd });
         executors[project].process = executor;
@@ -55,7 +51,7 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
             if (signal === 'SIGKILL') {
                 reject([]);
             } else {
-                executors[project] = null;
+                executors[project] = { initialized: false, process: undefined };
                 try {
                     let split = out.split(os.EOL);
                     if (split.length === 1) {
@@ -86,9 +82,8 @@ function nimExec(project: string, command: string, args: string[], useStdErr: bo
 
 function parseErrors(lines: string[]): ICheckResult[] {
     var ret: ICheckResult[] = [];
-    var templateError: boolean = false;
     var messageText = '';
-    var lastFile = { file: null, column: null, line: null };
+    var lastFile = { file: '', column: '', line: '' };
     for (var i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
         if (line.startsWith('Hint:')) {
@@ -100,9 +95,9 @@ function parseErrors(lines: string[]): ICheckResult[] {
                 messageText += os.EOL + line;
             }
         } else {
-            let [_, file, lineStr, charStrRaw_, charStr, severityRaw, severity, msg] = match;
+            let [, file, lineStr, , charStr, , severity, msg] = match;
             if (msg === 'template/generic instantiation from here') {
-                if (file.toLowerCase().startsWith(vscode.workspace.rootPath.toLowerCase())) {
+                if (isWorkspaceFile(file)) {
                     lastFile = { file: file, column: charStr, line: lineStr };
                 }
             } else {
@@ -110,12 +105,12 @@ function parseErrors(lines: string[]): ICheckResult[] {
                     ret[ret.length - 1].msg += os.EOL + messageText;
                 }
                 messageText = '';
-                if (file.toLowerCase().startsWith(vscode.workspace.rootPath.toLowerCase())) {
+                if (isWorkspaceFile(file)) {
                     ret.push({ file: file, line: parseInt(lineStr), column: parseInt(charStr), msg: msg, severity });
-                } else if (lastFile.file != null) {
+                } else if (lastFile.file !== '') {
                     ret.push({ file: lastFile.file, line: parseInt(lastFile.line), column: parseInt(lastFile.column), msg: msg, severity });
                 }
-                lastFile = { file: null, column: null, line: null };
+                lastFile = { file: '', column: '', line: '' };
             }
         }
     }
@@ -139,14 +134,13 @@ function parseNimsuggestErrors(items: NimSuggestResult[]): ICheckResult[] {
 }
 
 export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration): Promise<ICheckResult[]> {
-    var runningToolsPromises = [];
-    var cwd = path.dirname(filename);
+    var runningToolsPromises: Promise<any>[] = [];
 
     if (!!nimConfig['lintOnSave']) {
         if (!!nimConfig['useNimsuggestCheck']) {
             runningToolsPromises.push(new Promise((resolve, reject) => {
                 execNimSuggest(NimSuggestType.chk, filename, 0, 0, '').then(items => {
-                    if (items.length > 0) {
+                    if (items && items.length > 0) {
                         resolve(parseNimsuggestErrors(items));
                     } else {
                         resolve([]);

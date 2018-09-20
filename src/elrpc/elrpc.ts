@@ -32,11 +32,10 @@ export class EPCPeer {
                     if (this.receivedBuffer.length >= length + 6) {
                         let content = <any[]>sexp.parseSExp(this.receivedBuffer.toString('utf8', 6, 6 + length));
                         if (content) {
-                            let guid = content[0][1];
-                            this.sessions[guid](content[0]);
+                            let guid = <number>(content[0][1]);
+                            let handle = this.sessions.get(guid) as ((data: any) => void);
+                            handle(content[0]);
                             this.sessions.delete(guid);
-
-                            let endTime = Date.now();
                         } else {
                             this.sessions.forEach(session => {
                                 session('Received invalid SExp data');
@@ -67,7 +66,7 @@ export class EPCPeer {
 
             let payload = '(call ' + guid + ' ' + method + ' ' + sexp.toString({ kind: 'list', elements: parameter }) + ')';
 
-            this.sessions[guid] = (data) => {
+            this.sessions.set(guid, (data: any) => {
                 if (!(data instanceof Array)) {
                     reject(data);
                 } else {
@@ -81,7 +80,7 @@ export class EPCPeer {
                             break;
                     }
                 }
-            };
+            });
             this.socket.write(envelope(payload));
         });
     }

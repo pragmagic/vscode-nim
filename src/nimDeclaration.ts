@@ -7,19 +7,24 @@
 
 import vscode = require('vscode');
 import { getDirtyFile } from './nimUtils';
-import { execNimSuggest, NimSuggestResult, NimSuggestType} from './nimSuggestExec';
+import { execNimSuggest, NimSuggestType} from './nimSuggestExec';
 
 
 export class NimDefinitionProvider implements vscode.DefinitionProvider {
 
-  public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.Location> {
-    return new Promise<vscode.Location>((resolve, reject) => {
+  public provideDefinition(document: vscode.TextDocument, position: vscode.Position,
+                           token: vscode.CancellationToken): vscode.ProviderResult<vscode.Definition | vscode.DefinitionLink[]> {
+    return new Promise<any>((resolve, reject) => {
       execNimSuggest(NimSuggestType.def, document.fileName, position.line + 1, position.character,
         getDirtyFile(document)).then(result => {
 
           if (result && result.length > 0) {
             let def = result.pop();
-            resolve(def.location);
+            if (def) {
+              resolve(def.location);
+            } else {
+              resolve(null);
+            }
           } else {
             resolve(null);
           }

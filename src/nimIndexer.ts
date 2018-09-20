@@ -10,7 +10,7 @@ import Datastore = require('nedb');
 import path = require('path');
 import fs = require('fs');
 
-import { getNimSuggestPath, execNimSuggest, NimSuggestResult, NimSuggestType } from './nimSuggestExec';
+import { getNimSuggestPath, execNimSuggest, NimSuggestType } from './nimSuggestExec';
 import { showNimProgress, hideNimProgress, updateNimProgress } from './nimStatus';
 
 let dbVersion: number = 4;
@@ -79,7 +79,7 @@ export function findWorkspaceSymbols(query: string): Promise<vscode.SymbolInform
         try {
             let reg = new RegExp(query, 'i');
             dbTypes.find<any>({ ws: vscode.workspace.rootPath, type: reg }).limit(100).exec((err, docs) => {
-                let symbols = [];
+                let symbols: vscode.SymbolInformation[] = [];
                 docs.forEach(doc => {
                     symbols.push(
                         new vscode.SymbolInformation(
@@ -100,23 +100,25 @@ export function getFileSymbols(file: string, dirtyFile?: string): Promise<vscode
     return new Promise<vscode.SymbolInformation[]>((resolve, reject) => {
         execNimSuggest(NimSuggestType.outline, file, 0, 0, dirtyFile)
             .then(result => {
-                var symbols = [];
-                var exists = [];
-                result.forEach(item => {
+                var symbols: vscode.SymbolInformation[] = [];
+                var exists: string[] = [];
+                if (result) {
+                    result.forEach(item => {
 
-                    // skip let and var in proc and methods
-                    if ((item.suggest === 'skLet' || item.suggest === 'skVar') && item.containerName.indexOf('.') > 0) {
-                        return;
-                    }
+                        // skip let and var in proc and methods
+                        if ((item.suggest === 'skLet' || item.suggest === 'skVar') && item.containerName.indexOf('.') > 0) {
+                            return;
+                        }
 
-                    if (exists.indexOf(item.column + ':' + item.line) === -1) {
-                        exists.push(item.column + ':' + item.line);
-                        let symbolInfo = new vscode.SymbolInformation(
-                            item.symbolName, vscodeKindFromNimSym(item.suggest),
-                            item.range, item.uri, item.containerName);
-                        symbols.push(symbolInfo);
-                    }
-                });
+                        if (exists.indexOf(item.column + ':' + item.line) === -1) {
+                            exists.push(item.column + ':' + item.line);
+                            let symbolInfo = new vscode.SymbolInformation(
+                                item.symbolName, vscodeKindFromNimSym(item.suggest),
+                                item.range, item.uri, item.containerName);
+                            symbols.push(symbolInfo);
+                        }
+                    });
+                }
 
                 resolve(symbols);
             })
@@ -201,12 +203,12 @@ function removeFromIndex(file: string): void {
 }
 
 function cleanOldDb(basePath: string, name: string): void {
-    var dbPath = path.join(basePath, `${name}.db`);
+    let dbPath = path.join(basePath, `${name}.db`);
     if (fs.existsSync(dbPath)) {
         fs.unlinkSync(dbPath);
     }
     for (var i = 0; i < dbVersion; ++i) {
-        var dbPath = path.join(basePath, getDbName(name, i));
+        let dbPath = path.join(basePath, getDbName(name, i));
         if (fs.existsSync(dbPath)) {
             fs.unlinkSync(dbPath);
         }

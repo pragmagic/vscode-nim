@@ -9,7 +9,7 @@ import vscode = require('vscode');
 import fs = require('fs');
 import path = require('path');
 
-import { initNimSuggest, closeAllNimSuggestProcesses, closeNimSuggestProcess } from './nimSuggestExec';
+import { initNimSuggest, closeAllNimSuggestProcesses } from './nimSuggestExec';
 import { NimCompletionItemProvider } from './nimSuggest';
 import { NimDefinitionProvider } from './nimDeclaration';
 import { NimReferenceProvider } from './nimReferences';
@@ -18,7 +18,7 @@ import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutl
 import * as indexer from './nimIndexer';
 import { NimSignatureHelpProvider } from './nimSignature';
 import { NimFormattingProvider } from './nimFormatting';
-import { check, ICheckResult } from './nimBuild';
+import { check } from './nimBuild';
 import { NIM_MODE } from './nimMode';
 import { showHideStatus } from './nimStatus';
 import { getDirtyFile } from './nimUtils';
@@ -41,7 +41,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     diagnosticCollection = vscode.languages.createDiagnosticCollection('nim');
     ctx.subscriptions.push(diagnosticCollection);
 
-    vscode.languages.setLanguageConfiguration(NIM_MODE.language, {
+    vscode.languages.setLanguageConfiguration(NIM_MODE.language as string, {
         indentationRules: {
             increaseIndentPattern: /^\s*((((proc|macro|iterator|template|converter|func)\b.*\=)|(import|var|const|type)\s)|(import|let|var|const|type)|([^:]+:))$/,
             decreaseIndentPattern: /^\s*(((return|break|continue|raise)\n)|((elif|else|except|finally)\b.*:))\s*$/
@@ -49,7 +49,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
         onEnterRules: [{
             beforeText: /^\s*$/,
-			action: { indentAction: vscode.IndentAction.None }
+            action: { indentAction: vscode.IndentAction.None }
         }]
     });
 
@@ -57,7 +57,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
         if (terminal && e.processId === terminal.processId) {
-            terminal = null;
+            console.log(terminal);
         }
     });
 
@@ -93,7 +93,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     }
 }
 
-function deactivate() {
+export function deactivate() {
     closeAllNimSuggestProcesses();
     fileWatcher.dispose();
 }
@@ -119,7 +119,7 @@ function runCheck(document: vscode.TextDocument) {
         diagnosticCollection.clear();
 
         let diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-        var err = {};
+        var err: { [key: string]: boolean; } = {};
         errors.forEach(error => {
             if (!err[error.file + error.line + error.column + error.msg]) {
                 let targetUri = error.file;
@@ -178,14 +178,25 @@ function runFile() {
             let outputDirConfig = vscode.workspace.getConfiguration('nim')['runOutputDirectory'];
             var outputParams = '';
             if (!!outputDirConfig) {
-                if (!fs.existsSync(path.join(vscode.workspace.rootPath, outputDirConfig))) {
-                    fs.mkdirSync(path.join(vscode.workspace.rootPath, outputDirConfig));
+                if (vscode.workspace.workspaceFolders) {
+                    var rootPath = '';
+                    for (const folder of vscode.workspace.workspaceFolders) {
+                        if (folder.uri.scheme === 'file') {
+                            rootPath = folder.uri.fsPath;
+                            break;
+                        }
+                    }
+                    if (rootPath !== '') {
+                        if (!fs.existsSync(path.join(rootPath, outputDirConfig))) {
+                            fs.mkdirSync(path.join(rootPath, outputDirConfig));
+                        }
+                        outputParams = ' --out:"' + path.join(outputDirConfig, path.basename(editor.document.fileName, '.nim')) + '"';
+                    }
                 }
-                outputParams = ' --out:"' + path.join(outputDirConfig, path.basename(editor.document.fileName, '.nim')) + '"';
             }
-            if (editor.document.isDirty) {
+            if (editor && editor.document.isDirty) {
                 editor.document.save().then((success: boolean) => {
-                    if (success) {
+                    if (editor && success) {
                         terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
                             outputParams + ' -r "' + editor.document.fileName + '"', true);
                     }
