@@ -41,6 +41,9 @@
         "@types/node": "^10.10.0",
         "@types/mocha": "^5.2.5"
     },
+    "extensionDependencies": [
+        "ms-vscode.cpptools"
+    ],
     "engines": {
         "vscode": "^1.27.0"
     },
@@ -97,6 +100,10 @@
             {
                 "command": "nim.run.file",
                 "title": "Nim: Run selected file"
+            },
+            {
+                "command": "nim.check",
+                "title": "Nim: Check project"
             }
         ],
         "menus": {
@@ -112,6 +119,11 @@
             {
                 "key": "F6",
                 "command": "nim.run.file",
+                "when": "editorLangId == 'nim'"
+            },
+            {
+                "key": "ctrl+alt+b",
+                "command": "nim.check",
                 "when": "editorLangId == 'nim'"
             }
         ],
@@ -161,6 +173,11 @@
                 }
             }
         },
+        "breakpoints": [
+            {
+                "language": "nim"
+            }
+        ],
         "snippets": [
             {
                 "language": "nim",

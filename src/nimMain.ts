@@ -29,6 +29,7 @@ var terminal: vscode.Terminal;
 
 export function activate(ctx: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('nim.run.file', runFile);
+    vscode.commands.registerCommand('nim.check', runCheck);
 
     initNimSuggest(ctx);
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
@@ -88,7 +89,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     startBuildOnSaveWatcher(ctx.subscriptions);
 
-    if (vscode.window.activeTextEditor) {
+    if (vscode.window.activeTextEditor && !!vscode.workspace.getConfiguration('nim')['lintOnSave']) {
         runCheck(vscode.window.activeTextEditor.document);
     }
 }
@@ -98,8 +99,11 @@ export function deactivate() {
     fileWatcher.dispose();
 }
 
-function runCheck(document: vscode.TextDocument) {
+function runCheck(document?: vscode.TextDocument) {
     let config = vscode.workspace.getConfiguration('nim');
+    if (!document && vscode.window.activeTextEditor) {
+        document = vscode.window.activeTextEditor.document;
+    }
 
     function mapSeverityToVSCodeSeverity(sev: string) {
         switch (sev) {
@@ -110,7 +114,7 @@ function runCheck(document: vscode.TextDocument) {
         }
     }
 
-    if (document.languageId !== 'nim') {
+    if (!document || document.languageId !== 'nim') {
         return;
     }
 
@@ -157,7 +161,9 @@ function startBuildOnSaveWatcher(subscriptions: vscode.Disposable[]) {
         if (document.languageId !== 'nim') {
             return;
         }
-        runCheck(document);
+        if (!!vscode.workspace.getConfiguration('nim')['lintOnSave']) {
+            runCheck(document);
+        }
         if (!!vscode.workspace.getConfiguration('nim')['buildOnSave']) {
             vscode.commands.executeCommand('workbench.action.tasks.build');
         }

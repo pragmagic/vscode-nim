@@ -136,25 +136,23 @@ function parseNimsuggestErrors(items: NimSuggestResult[]): ICheckResult[] {
 export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration): Promise<ICheckResult[]> {
     var runningToolsPromises: Promise<any>[] = [];
 
-    if (!!nimConfig['lintOnSave']) {
-        if (!!nimConfig['useNimsuggestCheck']) {
-            runningToolsPromises.push(new Promise((resolve, reject) => {
-                execNimSuggest(NimSuggestType.chk, filename, 0, 0, '').then(items => {
-                    if (items && items.length > 0) {
-                        resolve(parseNimsuggestErrors(items));
-                    } else {
-                        resolve([]);
-                    }
-                }).catch(reason => reject(reason));
-            }));
+    if (!!nimConfig['useNimsuggestCheck']) {
+        runningToolsPromises.push(new Promise((resolve, reject) => {
+            execNimSuggest(NimSuggestType.chk, filename, 0, 0, '').then(items => {
+                if (items && items.length > 0) {
+                    resolve(parseNimsuggestErrors(items));
+                } else {
+                    resolve([]);
+                }
+            }).catch(reason => reject(reason));
+        }));
+    } else {
+        if (!isProjectMode()) {
+            runningToolsPromises.push(nimExec(getProjectFile(filename), 'check', ['--listFullPaths', getProjectFile(filename)], true, parseErrors));
         } else {
-            if (!isProjectMode()) {
-                runningToolsPromises.push(nimExec(getProjectFile(filename), 'check', ['--listFullPaths', getProjectFile(filename)], true, parseErrors));
-            } else {
-                getProjects().forEach(project => {
-                    runningToolsPromises.push(nimExec(project, 'check', ['--listFullPaths', project], true, parseErrors));
-                });
-            }
+            getProjects().forEach(project => {
+                runningToolsPromises.push(nimExec(project, 'check', ['--listFullPaths', project], true, parseErrors));
+            });
         }
     }
 
