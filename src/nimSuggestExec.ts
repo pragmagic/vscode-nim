@@ -176,6 +176,13 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
     if (!nimSuggestExec) {
         return [];
     }
+
+    // Dont run nimsuggest for nims files
+    // See https://github.com/pragmagic/vscode-nim/issues/84
+    if (path.extname(filename).toLowerCase() === '.nims') {
+        return [];
+    }
+
     try {
         let projectFile = getProjectFile(filename);
         let normalizedFilename = filename.replace(/\\+/g, '/');
