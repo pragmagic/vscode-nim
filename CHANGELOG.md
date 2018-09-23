@@ -3,7 +3,9 @@
 ## 0.6.0 (23 Sep 2018)
 * Update extesion to the latest VSCode codebase
 * Add support for breakpoints in source code and CPPTool extension for debug support
-* Add 'Check' command with default 'ctrl+alt+b' hotkey
+* Add `Check` command with default `ctrl+alt+b` hotkey
+* Add `nimssugestResetTimeout` config attribute [#60](https://github.com/pragmagic/vscode-nim/issues/95)
+* Fixed #84, #96
 
 ## 0.5.30 (26 Feb 2018)
 * Add experimental [nimpretty](https://github.com/nim-lang/Nim/blob/devel/tools/nimpretty.nim) support for code formatting (#79), `nimpretty` should be compiled and placed together with nim executable.
