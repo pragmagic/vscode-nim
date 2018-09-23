@@ -26,7 +26,7 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
                 suggestion.detail = nimSymDetails(item);
                 suggestion.sortText = ('0000' + suggestions.length).slice(-4);
                 // use predefined text to disable suggest sorting
-                suggestion.documentation = item.documentation;
+                suggestion.documentation = new vscode.MarkdownString(item.documentation);
                 suggestions.push(suggestion);
               }
             });

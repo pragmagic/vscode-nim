@@ -25,9 +25,11 @@ import { getDirtyFile } from './nimUtils';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
-var terminal: vscode.Terminal;
+var terminal: vscode.Terminal | undefined;
 
 export function activate(ctx: vscode.ExtensionContext): void {
+    let config = vscode.workspace.getConfiguration('nim');
+
     vscode.commands.registerCommand('nim.run.file', runFile);
     vscode.commands.registerCommand('nim.check', runCheck);
 
@@ -58,7 +60,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
         if (terminal && e.processId === terminal.processId) {
-            console.log(terminal);
+            terminal = undefined;
         }
     });
 
@@ -66,7 +68,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
     indexer.initWorkspace(ctx.extensionPath);
     fileWatcher = vscode.workspace.createFileSystemWatcher('**/*.nim');
     fileWatcher.onDidCreate((uri) => {
-        let config = vscode.workspace.getConfiguration('nim');
         if (config.has('licenseString')) {
             let path = uri.fsPath.toLowerCase();
             if (path.endsWith('.nim') || path.endsWith('.nims')) {
@@ -92,9 +93,17 @@ export function activate(ctx: vscode.ExtensionContext): void {
     if (vscode.window.activeTextEditor && !!vscode.workspace.getConfiguration('nim')['lintOnSave']) {
         runCheck(vscode.window.activeTextEditor.document);
     }
+
+    if (config.has('nimsuggestRestartTimeout')) {
+        let timeout = config['nimsuggestRestartTimeout'] as number;
+        if (timeout > 0) {
+            console.log('Reset nimsuggest process each ' + timeout + ' minutes');
+            global.setInterval(() => closeAllNimSuggestProcesses(), timeout * 60000);
+        }
+    }
 }
 
-export function deactivate() {
+export function deactivate(): void {
     closeAllNimSuggestProcesses();
     fileWatcher.dispose();
 }
@@ -202,7 +211,7 @@ function runFile() {
             }
             if (editor && editor.document.isDirty) {
                 editor.document.save().then((success: boolean) => {
-                    if (editor && success) {
+                    if (terminal && editor && success) {
                         terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
                             outputParams + ' -r "' + editor.document.fileName + '"', true);
                     }

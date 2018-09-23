@@ -170,6 +170,11 @@
                     "type": "string",
                     "default": "",
                     "description": "Optional license text that will be inserted on nim file creation."
+                },
+                "nim.nimsuggestRestartTimeout": {
+                    "type": "integer",
+                    "default": 60,
+                    "description": "Nimsuggest will be restarted after this timeout in minutes, if 0 then restart disabled."
                 }
             }
         },

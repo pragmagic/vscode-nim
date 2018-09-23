@@ -237,6 +237,7 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
 }
 
 export async function closeAllNimSuggestProcesses(): Promise<void> {
+    console.log('Close all nimsuggest processes');
     for (var project in nimSuggestProcessCache) {
         let desc = await nimSuggestProcessCache[project];
         if (desc) {
