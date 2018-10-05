@@ -25,12 +25,10 @@ export class NimFormattingProvider implements vscode.DocumentFormattingEditProvi
         if (res.status !== 0) {
           reject(res.error);
         } else {
-          let ext = path.extname(file);
-          let prettyFile = path.join(path.dirname(file), path.basename(file, ext) + '.pretty' + ext);
-          if (!fs.existsSync(prettyFile)) {
-            reject(prettyFile + ' file not found');
+          if (!fs.existsSync(file)) {
+            reject(file + ' file not found');
           } else {
-            let content = fs.readFileSync(prettyFile, 'utf-8');
+            let content = fs.readFileSync(file, 'utf-8');
             let range = document.validateRange(new vscode.Range(new vscode.Position(0, 0), new vscode.Position(1000000, 1000000)));
             resolve([vscode.TextEdit.replace(range, content)]);
           }
