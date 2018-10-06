@@ -8,7 +8,6 @@
 import vscode = require('vscode');
 import cp = require('child_process');
 import fs = require('fs');
-import path = require('path');
 import { getDirtyFile, getNimPrettyExecPath } from './nimUtils';
 
 export class NimFormattingProvider implements vscode.DocumentFormattingEditProvider {
