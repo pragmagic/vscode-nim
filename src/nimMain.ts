@@ -22,6 +22,7 @@ import { check } from './nimBuild';
 import { NIM_MODE } from './nimMode';
 import { showHideStatus } from './nimStatus';
 import { getDirtyFile } from './nimUtils';
+import { ProgressLocation } from 'vscode';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
@@ -128,7 +129,11 @@ function runCheck(document?: vscode.TextDocument) {
     }
 
     var uri = document.uri;
-    check(uri.fsPath, config).then(errors => {
+
+    vscode.window.withProgress(
+        {location: ProgressLocation.Window, cancellable: false, title: 'Nim: check project...'},
+        (progress) => check(uri.fsPath, config)
+    ).then(errors => {
         diagnosticCollection.clear();
 
         let diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
@@ -158,10 +163,6 @@ function runCheck(document?: vscode.TextDocument) {
             entries.push([vscode.Uri.file(uri), diags]);
         });
         diagnosticCollection.set(entries);
-    }).catch(err => {
-        if (err && err.length > 0) {
-            vscode.window.showInformationMessage('Error: ' + err);
-        }
     });
 }
 
