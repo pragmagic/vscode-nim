@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.6.1 (07 Oct 2018)
+* Add progress indication in nim check
+* Fixed Auto-formatting issue [#79](https://github.com/pragmagic/vscode-nim/issues/79)
+
 ## 0.6.0 (23 Sep 2018)
 * Update extesion to the latest VSCode codebase
 * Add support for breakpoints in source code and CPPTool extension for debug support
