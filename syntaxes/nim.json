@@ -999,7 +999,7 @@
     "escaped_char": {
       "patterns": [
         {
-          "match": "\\\\[nN]",
+          "match": "\\\\[pP]",
           "name": "constant.character.escape.newline.nim"
         },
         {
@@ -1007,7 +1007,7 @@
           "name": "constant.character.escape.carriagereturn.nim"
         },
         {
-          "match": "\\\\[lL]",
+          "match": "\\\\[lL]|\\\\[nN]",
           "name": "constant.character.escape.linefeed.nim"
         },
         {
@@ -1128,7 +1128,7 @@
       "name": "string.quoted.single.nim",
       "patterns": [
         {
-          "match": "\\\\n",
+          "match": "\\\\[pP]",
           "name": "invalid.illegal.character.nim"
         },
         {
