@@ -303,20 +303,103 @@
     },
     {
       "begin": "\\{\\.",
-      "end": "\\.{0,1}\\}",
-      "name": "meta.preprocessor.nim",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.pragma.start.nim"
+        }
+      },
+      "end": "\\.?\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.pragma.end.nim"
+        }
+      },
       "patterns": [
         {
-          "include": "#string_quoted_triple"
+          "begin": "\\b([[:alpha:]]\\w*)(?:\\s|\\s*:)",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            }
+          },
+          "end": "(?=\\.?\\}|,)",
+          "patterns": [
+            {
+              "include": "source.nim"
+            }
+          ]
         },
         {
-          "include": "#string_quoted_double_raw"
+          "begin": "\\b([[:alpha:]]\\w*)\\(",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            }
+          },
+          "end": "\\)",
+      "patterns": [
+        {
+              "include": "source.nim"
+            }
+          ]
         },
         {
-          "include": "#string_quoted_double"
+          "match": "\\b([[:alpha:]]\\w*)(?=\\.?\\}|,)",
+          "captures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            }
+          }
         },
         {
-          "include": "#string_quoted_single"
+          "begin": "\\b([[:alpha:]]\\w*)(\"\"\")",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            },
+            "2": {
+              "meta": "punctuation.definition.string.begin.nim"
+            }
+        },
+          "end": "\"\"\"(?!\")",
+          "endCaptures": {
+            "0": "punctuation.definition.string.end.nim"
+          },
+          "name": "string.quoted.triple.raw.nim"
+        },
+        {
+          "begin": "\\b([[:alpha:]]\\w*)(\")",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+        },
+            "2": {
+              "meta": "punctuation.definition.string.begin.nim"
+            }
+          },
+          "end": "\"",
+          "endCaptures": {
+            "0": "punctuation.definition.string.end.nim"
+          },
+          "name": "string.quoted.double.raw.nim"
+        },
+        {
+          "begin": "\\b(hint\\[\\w+\\]):",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            }
+        },
+          "end": "(?=\\.?\\}|,)",
+          "patterns": [
+        {
+              "include": "source.nim"
+        }
+      ]
+    },
+    {
+          "match": ",",
+          "name": "punctuation.separator.comma.nim"
         }
       ]
     },
