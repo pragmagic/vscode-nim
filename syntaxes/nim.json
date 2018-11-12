@@ -10,20 +10,24 @@
       "contentName": "comment.block.doc-comment.content.nim",
       "end": "\\]##",
       "name": "comment.block.doc-comment.nim",
-      "patterns": [{
-        "include": "#multilinedoccomment",
-        "name": "comment.block.doc-comment.nested.nim"
-      }]
+      "patterns": [
+        {
+          "include": "#multilinedoccomment",
+          "name": "comment.block.doc-comment.nested.nim"
+        }
+      ]
     },
     {
       "begin": "[ \\t]*#\\[",
       "contentName": "comment.block.content.nim",
       "end": "\\]#",
       "name": "comment.block.nim",
-      "patterns": [{
-        "include": "#multilinecomment",
-        "name": "comment.block.nested.nim"
-      }]
+      "patterns": [
+        {
+          "include": "#multilinecomment",
+          "name": "comment.block.nested.nim"
+        }
+      ]
     },
     {
       "begin": "(^[ \\t]+)?(?=##)",
@@ -72,7 +76,7 @@
       "name": "meta.proc.nim",
       "patterns": [
         {
-          "begin": "\\b(proc|method|template|macro|iterator|converter|func)\\s+\\`?([^\\:\\{\\s\\`\\*\\(]*)\\`?(\\s*\\*)?\\s*(\\(|\\=|:|\\[|\\n|\\{)",
+          "begin": "\\b(proc|method|template|macro|iterator|converter|func)\\s+\\`?([^\\:\\{\\s\\`\\*\\(]*)\\`?(\\s*\\*)?\\s*(?=\\(|\\=|:|\\[|\\n|\\{)",
           "captures": {
             "1": {
               "name": "keyword.other"
@@ -151,6 +155,9 @@
       }
     },
     {
+      "include": "#string_literal"
+    },
+    {
       "comment": "Language Constants.",
       "match": "\\b(true|false|Inf|NegInf|NaN|nil)\\b",
       "name": "constant.language.nim"
@@ -216,44 +223,6 @@
       "name": "support.function.any-method.nim"
     },
     {
-      "comment": "Empty raw string",
-      "match": "\\br\"\"(?!\")",
-      "name": "string.quoted.double.raw.nim"
-    },
-    {
-      "comment": "Empty extended raw string",
-      "match": "\\b(\\w+)(\"\")(?!\")",
-      "captures": {
-        "1": {
-          "name": "support.function.any-method.nim"
-        },
-        "2": {
-          "name": "string.quoted.double.raw.nim"
-        }
-      }
-    },
-    {
-      "include": "#string_quoted_triple_raw"
-    },
-    {
-      "include": "#string_quoted_triple"
-    },
-    {
-      "include": "#extended_string_quoted_triple_raw"
-    },
-    {
-      "include": "#string_quoted_double_raw"
-    },
-    {
-      "include": "#extended_string_quoted_double_raw"
-    },
-    {
-      "include": "#string_quoted_double"
-    },
-    {
-      "include": "#string_quoted_single"
-    },
-    {
       "begin": "(^\\s*)?(?=\\{\\.emit: ?\"\"\")",
       "beginCaptures": {
         "0": {
@@ -303,20 +272,103 @@
     },
     {
       "begin": "\\{\\.",
-      "end": "\\.{0,1}\\}",
-      "name": "meta.preprocessor.nim",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.pragma.start.nim"
+        }
+      },
+      "end": "\\.?\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.pragma.end.nim"
+        }
+      },
       "patterns": [
         {
-          "include": "#string_quoted_triple"
+          "begin": "\\b([[:alpha:]]\\w*)(?:\\s|\\s*:)",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            }
+          },
+          "end": "(?=\\.?\\}|,)",
+          "patterns": [
+            {
+              "include": "source.nim"
+            }
+          ]
         },
         {
-          "include": "#string_quoted_double_raw"
+          "begin": "\\b([[:alpha:]]\\w*)\\(",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            }
+          },
+          "end": "\\)",
+          "patterns": [
+            {
+              "include": "source.nim"
+            }
+          ]
         },
         {
-          "include": "#string_quoted_double"
+          "match": "\\b([[:alpha:]]\\w*)(?=\\.?\\}|,)",
+          "captures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            }
+          }
         },
         {
-          "include": "#string_quoted_single"
+          "begin": "\\b([[:alpha:]]\\w*)(\"\"\")",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            },
+            "2": {
+              "meta": "punctuation.definition.string.begin.nim"
+            }
+          },
+          "end": "\"\"\"(?!\")",
+          "endCaptures": {
+            "0": "punctuation.definition.string.end.nim"
+          },
+          "name": "string.quoted.triple.raw.nim"
+        },
+        {
+          "begin": "\\b([[:alpha:]]\\w*)(\")",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            },
+            "2": {
+              "meta": "punctuation.definition.string.begin.nim"
+            }
+          },
+          "end": "\"",
+          "endCaptures": {
+            "0": "punctuation.definition.string.end.nim"
+          },
+          "name": "string.quoted.double.raw.nim"
+        },
+        {
+          "begin": "\\b(hint\\[\\w+\\]):",
+          "beginCaptures": {
+            "1": {
+              "name": "meta.preprocessor.pragma.nim"
+            }
+          },
+          "end": "(?=\\.?\\}|,)",
+          "patterns": [
+            {
+              "include": "source.nim"
+            }
+          ]
+        },
+        {
+          "match": ",",
+          "name": "punctuation.separator.comma.nim"
         }
       ]
     },
@@ -985,23 +1037,23 @@
     "multilinecomment": {
       "begin": "#\\[",
       "end": "\\]#",
-      "patterns": [{
-        "include": "#multilinecomment"
-      }]
+      "patterns": [
+        {
+          "include": "#multilinecomment"
+        }
+      ]
     },
     "multilinedoccomment": {
       "begin": "##\\[",
       "end": "\\]##",
-      "patterns": [{
-        "include": "#multilinedoccomment"
-      }]
-    },
-    "escaped_char": {
       "patterns": [
         {
-          "match": "\\\\[pP]",
-          "name": "constant.character.escape.newline.nim"
-        },
+          "include": "#multilinedoccomment"
+        }
+      ]
+    },
+    "char_escapes": {
+      "patterns": [
         {
           "match": "\\\\[cC]|\\\\[rR]",
           "name": "constant.character.escape.carriagereturn.nim"
@@ -1056,6 +1108,242 @@
         }
       ]
     },
+    "string_escapes": {
+      "patterns": [
+        {
+          "match": "\\\\[pP]",
+          "name": "constant.character.escape.newline.nim"
+        },
+        {
+          "match": "\\\\[uU]\\h\\h\\h\\h",
+          "name": "constant.character.escape.hex.nim"
+        },
+        {
+          "match": "\\\\[uU]\\{\\h+\\}",
+          "name": "constant.character.escape.hex.nim"
+        },
+        {
+          "include": "#char_escapes"
+        }
+      ]
+    },
+    "raw_string_escapes": {
+      "match": "[^\"](\"\")",
+      "captures": {
+        "1": {
+          "name": "constant.character.escape.double-quote.nim"
+        }
+      }
+    },
+    "fmt_interpolation": {
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.template-expression.begin.nim"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.template-expression.end.nim"
+        }
+      },
+      "patterns": [
+        {
+          "begin": ":",
+          "end": "(?=\\})",
+          "name": "meta.template.format-specifier.nim"
+        },
+        {
+          "include": "source.nim"
+        }
+      ],
+      "name": "meta.template.expression.nim"
+    },
+    "string_literal": {
+      "patterns": [
+        {
+          "include": "#fmt_string_triple"
+        },
+        {
+          "include": "#fmt_string_triple_operator"
+        },
+        {
+          "include": "#extended_string_quoted_triple_raw"
+        },
+        {
+          "include": "#string_quoted_triple_raw"
+        },
+        {
+          "include": "#fmt_string_operator"
+        },
+        {
+          "include": "#fmt_string"
+        },
+        {
+          "include": "#fmt_string_call"
+        },
+        {
+          "include": "#string_quoted_double_raw"
+        },
+        {
+          "include": "#extended_string_quoted_double_raw"
+        },
+        {
+          "include": "#string_quoted_single"
+        },
+        {
+          "include": "#string_quoted_triple"
+        },
+        {
+          "include": "#string_quoted_double"
+        }
+      ]
+    },
+    "fmt_string": {
+      "begin": "\\b(fmt)(\")",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.double.raw.nim",
+      "patterns": [
+        {
+          "match": "(?<!\")\"(?!\")",
+          "name": "invalid.illegal.nim"
+        },
+        {
+          "include": "#raw_string_escapes"
+        },
+        {
+          "include": "#fmt_interpolation"
+        }
+      ]
+    },
+    "fmt_string_triple": {
+      "begin": "\\b(fmt)(\"\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
+      "end": "\"\"\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.triple.raw.nim",
+      "patterns": [
+        {
+          "include": "#fmt_interpolation"
+        }
+      ]
+    },
+    "fmt_string_operator": {
+      "begin": "(&)(\")",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.operator.nim"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.double.nim",
+      "patterns": [
+        {
+          "match": "\"",
+          "name": "invalid.illegal.nim"
+        },
+        {
+          "include": "#string_escapes"
+        },
+        {
+          "include": "#fmt_interpolation"
+        }
+      ]
+    },
+    "fmt_string_triple_operator": {
+      "begin": "(&)(\"\"\")",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.operator.nim"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.nim"
+        }
+      },
+      "end": "\"\"\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.nim"
+        }
+      },
+      "name": "string.quoted.triple.raw.nim",
+      "patterns": [
+        {
+          "include": "#fmt_interpolation"
+        }
+      ]
+    },
+    "fmt_string_call": {
+      "begin": "(fmt)\\((?=\")",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.any-method.nim"
+        }
+      },
+      "end": "\\)",
+      "patterns": [
+        {
+          "begin": "\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.nim"
+            }
+          },
+          "end": "\"(?=\\))",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.nim"
+            }
+          },
+          "name": "string.quoted.double.nim",
+          "patterns": [
+            {
+              "match": "\"",
+              "name": "invalid.illegal.nim"
+            },
+            {
+              "include": "#string_escapes"
+            },
+            {
+              "include": "#fmt_interpolation"
+            }
+          ]
+        }
+      ]
+    },
     "string_quoted_double": {
       "begin": "\"",
       "beginCaptures": {
@@ -1073,7 +1361,7 @@
       "name": "string.quoted.double.nim",
       "patterns": [
         {
-          "include": "#escaped_char"
+          "include": "#string_escapes"
         }
       ]
     },
@@ -1084,17 +1372,21 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "comment": "Raw Double Quoted String",
-      "end": "[^\"]\"(?!\")",
+      "end": "\"",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
         }
       },
-      "name": "string.quoted.double.raw.nim"
+      "name": "string.quoted.double.raw.nim",
+      "patterns": [
+        {
+          "include": "#raw_string_escapes"
+        }
+      ]
     },
     "extended_string_quoted_double_raw": {
-      "begin": "\\b(\\w+)(\")(?!\"\")",
+      "begin": "\\b(\\w+)(\")",
       "beginCaptures": {
         "1": {
           "name": "support.function.any-method.nim"
@@ -1103,13 +1395,18 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "[^\"]\"(?!\")",
+      "end": "\"",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
         }
       },
-      "name": "string.quoted.double.raw.nim"
+      "name": "string.quoted.double.raw.nim",
+      "patterns": [
+        {
+          "include": "#raw_string_escapes"
+        }
+      ]
     },
     "string_quoted_single": {
       "begin": "'",
@@ -1128,11 +1425,7 @@
       "name": "string.quoted.single.nim",
       "patterns": [
         {
-          "match": "\\\\[pP]",
-          "name": "invalid.illegal.character.nim"
-        },
-        {
-          "include": "#escaped_char"
+          "include": "#char_escapes"
         },
         {
           "match": "([^']{2,}?)",
