@@ -10,7 +10,7 @@ import cp = require('child_process');
 import path = require('path');
 import fs = require('fs');
 import elrpc = require('./elrpc/elrpc');
-import { prepareConfig, getProjectFile, isProjectMode, getNimExecPath, correctBinname } from './nimUtils';
+import { prepareConfig, getProjectFileInfo, isProjectMode, getNimExecPath, correctBinname, ProjectFileInfo, toLocalFile } from './nimUtils';
 
 class NimSuggestProcessDescription {
     process?: cp.ChildProcess;
@@ -162,9 +162,13 @@ export function initNimSuggest(ctx: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration(prepareConfig);
 }
 
-function trace(pid: number, projectFile: string, msg: any): void {
+function trace(pid: number, projectFile: ProjectFileInfo | string, msg: any): void {
     if (!!vscode.workspace.getConfiguration('nim').get('logNimsuggest')) {
-        console.log('[' + pid + ':' + projectFile + ']');
+        if (typeof projectFile === 'string') {
+            console.log('[' + pid + ':' + projectFile + ']');
+        } else {
+            console.log('[' + pid + ':' + projectFile.wsFolder.name + ':' + projectFile.wsFolder.uri.fsPath + ':' + projectFile.filePath + ']');
+        }
         console.log(msg);
     }
 }
@@ -183,8 +187,8 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
         return [];
     }
 
+    let projectFile = getProjectFileInfo(filename);
     try {
-        let projectFile = getProjectFile(filename);
         let normalizedFilename = filename.replace(/\\+/g, '/');
         let desc = await getNimSuggestProcess(projectFile);
         let suggestCmd = NimSuggestType[suggestType];
@@ -196,7 +200,7 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
             let ret = await desc.rpc.callMethod(suggestCmd, { kind: 'string', str: normalizedFilename }, { kind: 'number', n: line }, { kind: 'number', n: column }, { kind: 'string', str: dirtyFile as string });
 
             if (desc.process) {
-                trace(desc.process.pid, projectFile + '=' + suggestCmd + ' ' + normalizedFilename, ret);
+                trace(desc.process.pid, toLocalFile(projectFile) + '=' + suggestCmd + ' ' + normalizedFilename, ret);
             }
 
             if (ret != null) {
@@ -224,7 +228,7 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
                     }
                 } else if (ret === 'EPC Connection closed') {
                     console.error(ret);
-                    await closeNimSuggestProcess(filename);
+                    await closeNimSuggestProcess(projectFile);
                 } else {
                     var res = new NimSuggestResult();
                     res.suggest = '' + ret;
@@ -234,12 +238,12 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
         }
         if (!isProjectMode() &&
             vscode.window.visibleTextEditors.every((value, index, array) => { return value.document.uri.fsPath !== filename; })) {
-            await closeNimSuggestProcess(filename);
+            await closeNimSuggestProcess(projectFile);
         }
         return result;
     } catch (e) {
         console.error(e);
-        await closeNimSuggestProcess(filename);
+        await closeNimSuggestProcess(projectFile);
     }
 }
 
@@ -259,8 +263,8 @@ export async function closeAllNimSuggestProcesses(): Promise<void> {
     nimSuggestProcessCache = {};
 }
 
-export async function closeNimSuggestProcess(filename: string): Promise<void> {
-    var file = getProjectFile(filename);
+export async function closeNimSuggestProcess(project: ProjectFileInfo): Promise<void> {
+    var file = toLocalFile(project);
     if (nimSuggestProcessCache[file]) {
         let desc = await nimSuggestProcessCache[file];
         if (desc) {
@@ -275,9 +279,10 @@ export async function closeNimSuggestProcess(filename: string): Promise<void> {
     }
 }
 
-async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProcessDescription | undefined> {
-    if (!nimSuggestProcessCache[nimProject]) {
-        nimSuggestProcessCache[nimProject] = new Promise<NimSuggestProcessDescription>((resolve, reject) => {
+async function getNimSuggestProcess(nimProject: ProjectFileInfo): Promise<NimSuggestProcessDescription | undefined> {
+    let projectPath = toLocalFile(nimProject);
+    if (!nimSuggestProcessCache[projectPath]) {
+        nimSuggestProcessCache[projectPath] = new Promise<NimSuggestProcessDescription>((resolve, reject) => {
             let nimConfig = vscode.workspace.getConfiguration('nim');
             var args = ['--epc', '--v2'];
             if (!!nimConfig['logNimsuggest']) {
@@ -287,8 +292,8 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
                 args.push('--refresh:on');
             }
 
-            args.push(nimProject);
-            let process = cp.spawn(getNimSuggestPath(), args, { cwd: vscode.workspace.rootPath });
+            args.push(nimProject.filePath);
+            let process = cp.spawn(getNimSuggestPath(), args, { cwd: nimProject.wsFolder.uri.fsPath });
             process.stdout.once('data', (data) => {
                 let dataStr = data.toString();
                 let portNumber = parseInt(dataStr);
@@ -310,8 +315,8 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
                 if (code !== 0) {
                     console.error('nimsuggest closed with code: ' + code + ', signal: ' + signal);
                 }
-                if (nimSuggestProcessCache[nimProject]) {
-                    (<Promise<NimSuggestProcessDescription>> nimSuggestProcessCache[nimProject]).then((desc) => {
+                if (nimSuggestProcessCache[projectPath]) {
+                    (<Promise<NimSuggestProcessDescription>> nimSuggestProcessCache[projectPath]).then((desc) => {
                         if (desc && desc.rpc) {
                             desc.rpc.stop();
                         }
@@ -321,5 +326,5 @@ async function getNimSuggestProcess(nimProject: string): Promise<NimSuggestProce
             });
         });
     }
-    return nimSuggestProcessCache[nimProject];
+    return nimSuggestProcessCache[projectPath];
 }

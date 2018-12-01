@@ -11,8 +11,13 @@ import os = require('os');
 import cp = require('child_process');
 import vscode = require('vscode');
 
+export interface ProjectFileInfo {
+    wsFolder: vscode.WorkspaceFolder;
+    filePath: string;
+}
+
 let _pathesCache: { [tool: string]: string; } = {};
-var _projects: string[] = [];
+var _projects: ProjectFileInfo[] = [];
 
 export function getNimExecPath(): string {
     let path = getBinPath('nim');
@@ -40,18 +45,50 @@ export function isWorkspaceFile(filePath: string): boolean {
 }
 
 /**
- * Return filesystem file path.
+ * Return project info from file path.
  *
  * @param filePath relative or absolite file path
  */
-export function toLocalFile(filePath: string): string {
-    if (!path.isAbsolute(filePath)) {
+export function toProjectInfo(filePath: string): ProjectFileInfo {
+    if (path.isAbsolute(filePath)) {
         let workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filePath));
         if (workspaceFolder) {
-            return workspaceFolder.uri.with({path: workspaceFolder.uri.path + '/' + filePath}).fsPath;
+            return { wsFolder: workspaceFolder, filePath: vscode.workspace.asRelativePath(filePath, false) };
+        }
+    } else {
+        if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+            if (vscode.workspace.workspaceFolders.length === 1) {
+                return { wsFolder: vscode.workspace.workspaceFolders[0], filePath: filePath };
+            } else {
+                let parsedPath = filePath.split('/');
+                if (parsedPath.length > 1) {
+                    for (const folder of vscode.workspace.workspaceFolders) {
+                        if (parsedPath[0] === folder.name) {
+                            return { wsFolder: folder, filePath: filePath.substr(parsedPath[0].length + 1) };
+                        }
+                    }
+                }
+            }
         }
     }
-    return filePath;
+    let parsedPath = path.parse(filePath);
+    return {
+        wsFolder: {
+            uri: vscode.Uri.file(parsedPath.dir),
+            name: 'root',
+            index: 0
+        },
+        filePath: parsedPath.base
+    };
+}
+
+/**
+ * Return project file in filesystem.
+ *
+ * @param project project file info
+ */
+export function toLocalFile(project: ProjectFileInfo): string {
+    return project.wsFolder.uri.with({path: project.wsFolder.uri.path + '/' + project.filePath}).fsPath;
 }
 
 /**
@@ -70,14 +107,12 @@ export function getNimPrettyExecPath(): string {
     return _pathesCache[toolname];
 }
 
-export function getProjectFile(filename: string) {
-    filename = vscode.workspace.asRelativePath(filename);
+export function getProjectFileInfo(filename: string): ProjectFileInfo {
     if (!isProjectMode()) {
-        return filename;
+        return toProjectInfo(filename);
     }
-    for (var i = 0; i < _projects.length; i++) {
-        let project = _projects[i];
-        if (filename.startsWith(path.dirname(project))) {
+    for (const project of _projects) {
+        if (filename.startsWith(path.dirname(toLocalFile(project)))) {
             return project;
         }
     }
@@ -97,7 +132,7 @@ export function isProjectMode(): boolean {
     return _projects.length > 0;
 }
 
-export function getProjects(): string[] {
+export function getProjects(): ProjectFileInfo[] {
     return _projects;
 }
 
@@ -108,10 +143,14 @@ export function prepareConfig(): void {
     if (projects) {
         if (projects instanceof Array) {
             projects.forEach((project) => {
-                _projects.push(toLocalFile(project));
+                _projects.push(toProjectInfo(project));
             });
         } else {
-            _projects.push(toLocalFile(projects));
+            vscode.workspace.findFiles(projects).then(result => {
+                if (result && result.length > 0) {
+                    _projects.push(toProjectInfo(result[0].fsPath));
+                }
+            });
         }
     }
 }
