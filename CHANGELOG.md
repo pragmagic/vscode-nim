@@ -1,8 +1,8 @@
 # ChangeLog
 
 ## 0.6.2 (01 Dec 2018)
-* Add workspace support [#106] (https://github.com/pragmagic/vscode-nim/issues/106)
-* Syntax improvements [#105] (https://github.com/pragmagic/vscode-nim/issues/79)
+* Add workspace support (https://github.com/pragmagic/vscode-nim/issues/106)
+* Syntax improvements (https://github.com/pragmagic/vscode-nim/issues/105)
 
 ## 0.6.1 (07 Oct 2018)
 * Add progress indication in nim check
