@@ -16,6 +16,9 @@ This extension adds language support for the Nim language to VS Code, including:
 - Build-on-save
 - Workspace symbol search
 - Quick info
+- Nim check result reported in `Nim` output channel (great for macro development).
+
+![output channel demo](images/nim_vscode_output_demo.gif)
 
 ## Using
 
