@@ -206,3 +206,38 @@ export function removeDirSync(p: string): void {
         fs.rmdirSync(p);
     }
 }
+
+
+let _channel: vscode.OutputChannel;
+export function getOutputChannel() {
+    if (!_channel) {
+        _channel = vscode.window.createOutputChannel('Nim');
+    }
+    return _channel;
+}
+function padStart(len: number, input: string): string {
+    let out = '';
+    for (let i = input.length; i < len; i++) {
+        out += '0';
+    }
+    return out + input;
+}
+function cleanDateString(date: Date): string {
+    let year = date.getFullYear();
+    let month = padStart(2, date.getMonth().toString());
+    let dd = padStart(2, date.getDate().toString());
+    let hour = padStart(2, date.getHours().toString());
+    let minute = padStart(2, date.getMinutes().toString());
+    let second = padStart(2, date.getSeconds().toString());
+    let millisecond = padStart(3, date.getMilliseconds().toString());
+    return `${year}-${month}-${dd} ${hour}:${minute}:${second}.${millisecond}`;
+}
+
+/**
+ * Prints message in Nim's output channel
+ */
+export function outputLine(message: string) {
+    let channel = getOutputChannel();
+    let timeNow = new Date();
+    channel.appendLine(`${cleanDateString(timeNow)} - ${message}`);
+}

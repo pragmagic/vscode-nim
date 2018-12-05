@@ -8,7 +8,7 @@
 import vscode = require('vscode');
 import cp = require('child_process');
 import os = require('os');
-import { isWorkspaceFile, getNimExecPath, getProjectFileInfo, getProjects, isProjectMode, ProjectFileInfo, toLocalFile } from './nimUtils';
+import { isWorkspaceFile, getNimExecPath, getProjectFileInfo, getProjects, isProjectMode, ProjectFileInfo, toLocalFile, outputLine } from './nimUtils';
 import { execNimSuggest, NimSuggestType, NimSuggestResult } from './nimSuggestExec';
 
 export interface ICheckResult {
@@ -45,7 +45,9 @@ function nimExec(project: ProjectFileInfo, command: string, args: string[], useS
                 return resolve([]);
             }
         });
-
+        executor.stdout.on('data', data => {
+            outputLine('[info] nim check output:\n' + data.toString());
+        });
         var out = '';
         executor.on('exit', (code, signal) => {
             if (signal === 'SIGKILL') {
