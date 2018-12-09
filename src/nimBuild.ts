@@ -149,10 +149,10 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
     } else {
         if (!isProjectMode()) {
             let project = getProjectFileInfo(filename);
-            runningToolsPromises.push(nimExec(project, 'check', ['--listFullPaths', project.filePath], true, parseErrors));
+            runningToolsPromises.push(nimExec(project, 'check', ['--threads:on', '--listFullPaths', project.filePath], true, parseErrors));
         } else {
             getProjects().forEach(project => {
-                runningToolsPromises.push(nimExec(project, 'check', ['--listFullPaths', project.filePath], true, parseErrors));
+                runningToolsPromises.push(nimExec(project, 'check', ['--threads:on', '--listFullPaths', project.filePath], true, parseErrors));
             });
         }
     }
