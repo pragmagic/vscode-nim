@@ -21,7 +21,7 @@ import { NimFormattingProvider } from './nimFormatting';
 import { check } from './nimBuild';
 import { NIM_MODE } from './nimMode';
 import { showHideStatus } from './nimStatus';
-import { getDirtyFile } from './nimUtils';
+import { getDirtyFile, outputLine } from './nimUtils';
 import { ProgressLocation } from 'vscode';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
@@ -102,6 +102,8 @@ export function activate(ctx: vscode.ExtensionContext): void {
             global.setInterval(() => closeAllNimSuggestProcesses(), timeout * 60000);
         }
     }
+
+    outputLine('[info] Extension Activated');
 }
 
 export function deactivate(): void {
