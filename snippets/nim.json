@@ -63,6 +63,10 @@
         "macro": {
             "prefix": "macro",
             "body": "macro ${1:name}(${2:arguments}): ${3:return type} =\n\t$0"
+        },
+        "pragma": {
+            "prefix": "pr",
+            "body": "{.${1:name}.}"
         }
     }
 }
