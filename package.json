@@ -53,7 +53,8 @@
         "onLanguage:nimble",
         "onCommand:nim.build",
         "onCommand:nim.run",
-        "onCommand:nim.runTest"
+        "onCommand:nim.runTest",
+        "onCommand:nim.execSelectionInTerminal"
     ],
     "main": "./out/nimMain",
     "contributes": {
@@ -99,12 +100,19 @@
         "commands": [
             {
                 "command": "nim.run.file",
-                "title": "Nim: Run selected file"
+                "title": "Run selected Nim file",
+                "category": "Nim"
             },
             {
                 "command": "nim.check",
-                "title": "Nim: Check project"
-            }
+                "title": "Check Nim project",
+                "category": "Nim"
+            },
+            {
+                "command": "nim.execSelectionInTerminal",
+                "title": "Run Selection/Line in Nim Terminal",
+                "category": "Nim"
+            }            
         ],
         "menus": {
             "editor/context": [
@@ -125,7 +133,12 @@
                 "key": "ctrl+alt+b",
                 "command": "nim.check",
                 "when": "editorLangId == 'nim'"
-            }
+            },
+            {
+                "key": "shift+enter",
+                "command": "nim.execSelectionInTerminal",
+                "when": "editorFocus && editorLangId == nim && !findInputFocussed && !replaceInputFocussed"
+            }            
         ],
         "configuration": {
             "type": "object",

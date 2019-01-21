@@ -18,7 +18,7 @@ import { NimDocumentSymbolProvider, NimWorkspaceSymbolProvider } from './nimOutl
 import * as indexer from './nimIndexer';
 import { NimSignatureHelpProvider } from './nimSignature';
 import { NimFormattingProvider } from './nimFormatting';
-import { check } from './nimBuild';
+import { check, execSelectionInTerminal, activateEvalConsole } from './nimBuild';
 import { NIM_MODE } from './nimMode';
 import { showHideStatus } from './nimStatus';
 import { getDirtyFile, outputLine } from './nimUtils';
@@ -33,6 +33,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand('nim.run.file', runFile);
     vscode.commands.registerCommand('nim.check', runCheck);
+    vscode.commands.registerCommand('nim.execSelectionInTerminal', execSelectionInTerminal);
 
     initNimSuggest(ctx);
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
@@ -66,6 +67,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     });
 
     console.log(ctx.extensionPath);
+    activateEvalConsole();
     indexer.initWorkspace(ctx.extensionPath);
     fileWatcher = vscode.workspace.createFileSystemWatcher('**/*.nim');
     fileWatcher.onDidCreate((uri) => {

@@ -161,3 +161,29 @@ export function check(filename: string, nimConfig: vscode.WorkspaceConfiguration
 
     return Promise.all(runningToolsPromises).then(resultSets => [].concat.apply([], resultSets));
 }
+
+var evalTerminal: vscode.Terminal | undefined;
+
+export function activateEvalConsole() {
+    vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
+        if (evalTerminal && e.processId === evalTerminal.processId) {
+            evalTerminal = undefined;
+        }
+    });
+}
+
+export function execSelectionInTerminal(document?: vscode.TextDocument) {
+    if (vscode.window.activeTextEditor) {
+        if (!getNimExecPath()) {
+            return;
+        }
+
+        if (!evalTerminal) {
+            evalTerminal = vscode.window.createTerminal('Nim Console');
+            evalTerminal.show(true);
+            evalTerminal.sendText(getNimExecPath() + ' ' + 'secret\n');
+        }
+        evalTerminal.sendText(vscode.window.activeTextEditor.document.getText(vscode.window.activeTextEditor.selection));
+        // evalTerminal.sendText('\n');
+    }
+}
