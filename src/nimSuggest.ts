@@ -6,8 +6,9 @@
 'use strict';
 
 import vscode = require('vscode');
-import { getDirtyFile } from './nimUtils';
+import { getDirtyFile, getProjectFileInfo } from './nimUtils';
 import { execNimSuggest, NimSuggestType, NimSuggestResult } from './nimSuggestExec';
+import { getImports } from './nimImports';
 
 export class NimCompletionItemProvider implements vscode.CompletionItemProvider {
   public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Thenable<vscode.CompletionItem[]> {
@@ -15,28 +16,34 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
       var filename = document.fileName;
       let range = document.getWordRangeAtPosition(position);
       let txt = range ? document.getText(range).toLowerCase() : undefined;
-      execNimSuggest(NimSuggestType.sug, filename, (position.line + 1), position.character, getDirtyFile(document))
-        .then(items => {
-          var suggestions: vscode.CompletionItem[] = [];
-          if (items) {
-            items.forEach(item => {
-              if (item.answerType === 'sug' && (!txt || item.symbolName.toLowerCase().indexOf(txt) >= 0)) {
-                var suggestion = new vscode.CompletionItem(item.symbolName);
-                suggestion.kind = vscodeKindFromNimSym(item.suggest);
-                suggestion.detail = nimSymDetails(item);
-                suggestion.sortText = ('0000' + suggestions.length).slice(-4);
-                // use predefined text to disable suggest sorting
-                suggestion.documentation = new vscode.MarkdownString(item.documentation);
-                suggestions.push(suggestion);
-              }
-            });
-          }
-          if (suggestions.length > 0) {
-            resolve(suggestions);
-          } else {
-            reject();
-          }
-        }).catch(reason => reject(reason));
+      let line = document.lineAt(position).text;
+      if (line.startsWith('import ')) {
+        let txtPart = txt && range ? document.getText(range.with({end: position})).toLowerCase() : undefined;
+        resolve(getImports(txtPart, getProjectFileInfo(filename).wsFolder.uri.fsPath));
+      } else {
+        execNimSuggest(NimSuggestType.sug, filename, (position.line + 1), position.character, getDirtyFile(document))
+          .then(items => {
+            var suggestions: vscode.CompletionItem[] = [];
+            if (items) {
+              items.forEach(item => {
+                if (item.answerType === 'sug' && (!txt || item.symbolName.toLowerCase().indexOf(txt) >= 0)) {
+                  var suggestion = new vscode.CompletionItem(item.symbolName);
+                  suggestion.kind = vscodeKindFromNimSym(item.suggest);
+                  suggestion.detail = nimSymDetails(item);
+                  suggestion.sortText = ('0000' + suggestions.length).slice(-4);
+                  // use predefined text to disable suggest sorting
+                  suggestion.documentation = new vscode.MarkdownString(item.documentation);
+                  suggestions.push(suggestion);
+                }
+              });
+            }
+            if (suggestions.length > 0) {
+              resolve(suggestions);
+            } else {
+              reject();
+            }
+          }).catch(reason => reject(reason));
+      }
     });
   }
 }

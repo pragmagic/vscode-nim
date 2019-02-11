@@ -107,6 +107,22 @@ export function getNimPrettyExecPath(): string {
     return _pathesCache[toolname];
 }
 
+/**
+ * Returns full path to nimble executables or '' if file not found.
+ */
+export function getNimbleExecPath(): string {
+    let toolname = 'nimble';
+    if (!_pathesCache[toolname]) {
+        let nimblePath = path.resolve(path.dirname(getNimExecPath()), correctBinname(toolname));
+        if (fs.existsSync(nimblePath)) {
+            _pathesCache[toolname] = nimblePath;
+        } else {
+            _pathesCache[toolname] = '';
+        }
+    }
+    return _pathesCache[toolname];
+}
+
 export function getProjectFileInfo(filename: string): ProjectFileInfo {
     if (!isProjectMode()) {
         return toProjectInfo(filename);

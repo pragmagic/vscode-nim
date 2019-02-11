@@ -23,6 +23,7 @@ import { NIM_MODE } from './nimMode';
 import { showHideStatus } from './nimStatus';
 import { getDirtyFile, outputLine } from './nimUtils';
 import { ProgressLocation } from 'vscode';
+import { initImports, removeFileFromImports, addFileToImports } from './nimImports';
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 var fileWatcher: vscode.FileSystemWatcher;
@@ -83,11 +84,12 @@ export function activate(ctx: vscode.ExtensionContext): void {
                 });
             }
         }
-        // indexer.addWorkspaceFile(uri.fsPath);
+        addFileToImports(uri.fsPath);
     });
 
-    // fileWatcher.onDidChange(uri => indexer.changeWorkspaceFile(uri.fsPath));
-    // fileWatcher.onDidDelete(uri => indexer.removeWorkspaceFile(uri.fsPath));
+    fileWatcher.onDidDelete(uri => {
+        removeFileFromImports(uri.fsPath);
+    });
 
     ctx.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(new NimWorkspaceSymbolProvider()));
 
@@ -105,6 +107,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
         }
     }
 
+    initImports();
     outputLine('[info] Extension Activated');
 }
 
