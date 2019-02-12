@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 0.6.3 (12 Feb 2019)
+* Shift-Enter: Send-Selected-Lines-To-REPL (#113)
+* Add pragma snippet (#114)
+* Nim check result reported in `Nim` output channel
+* Add suggestion for imports (experimental feature)
+
 ## 0.6.2 (01 Dec 2018)
 * Add workspace support (https://github.com/pragmagic/vscode-nim/issues/106)
 * Syntax improvements (https://github.com/pragmagic/vscode-nim/issues/105)

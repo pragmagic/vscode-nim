@@ -75,7 +75,6 @@ This command available from file context menu or by `F6` keyboard shortcut.
 ## TODO
 
 * Rename support
-* Code action for imports (suggest available modules to import)
 * Debug support
 
 ## ChangeLog
