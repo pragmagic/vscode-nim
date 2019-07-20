@@ -174,6 +174,8 @@ export function prepareConfig(): void {
 export function getBinPath(tool: string): string {
     if (_pathesCache[tool]) return _pathesCache[tool];
     if (process.env['PATH']) {
+        //add support for choosenim
+        process.env['PATH']= process.env['PATH']+ (<any>path).delimiter + process.env['HOME'] + "/.nimble/bin"
         var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
         _pathesCache[tool] = pathparts.map(dir => path.join(dir, correctBinname(tool))).filter(candidate => fs.existsSync(candidate))[0];
         if (process.platform !== 'win32') {
