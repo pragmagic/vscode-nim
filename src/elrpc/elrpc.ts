@@ -3,10 +3,11 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 import net = require('net');
+import util = require('util');
 import sexp = require('./sexp');
 
 function envelope(content: string): string {
-    return ('000000' + content.length.toString(16)).slice(-6) + content;
+    return ('000000' + (new util.TextEncoder().encode(content).length).toString(16)).slice(-6) + content;
 }
 
 function generateUID(): number {
