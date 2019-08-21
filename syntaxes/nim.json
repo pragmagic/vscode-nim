@@ -1241,7 +1241,7 @@
       "end": "\\G\\s*$",
       "beginCaptures": {
         "1": {
-          "name": "storage.type.string.nim"
+          "name": "support.function.any-method.nim"
         },
         "2": {
           "name": "punctuation.definition.string.begin.nim"
