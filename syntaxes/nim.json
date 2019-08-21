@@ -1029,10 +1029,10 @@
 		},
 		"block-container_string-raw": {
 			"name": "meta.structure.block-container.string-raw.nim",
-			"begin": "(?=^( *)((?:[^#\"]|\"(?:\\.|[^\"])*\")*)(r\":)$)",
+			"begin": "(?=^( *)((?:[^#\"]|\"(?:\\\\.|[^\"])*\")*)(r\":)$)",
 			"while": "^(?:\\1  |\\s*$)",
 			"patterns": [
-				{ "include": "#block-initial-line" },
+				{ "include": "#block-container_initial-line" },
 				{
 					"match": "(?:[^\\s]|\\s(?!\\s*$))+",
 					"name": "string.quoted.block.raw.nim"
@@ -1041,7 +1041,7 @@
 		},
 		"block-container_string": {
 			"name": "meta.structure.block-container.string.nim",
-			"begin": "(?=^( *)((?:[^#\"]|\"(?:\\.|[^\"])*\")*)(\":)$)",
+			"begin": "(?=^( *)((?:[^#\"]|\"(?:\\\\.|[^\"])*\")*)(\":)$)",
 			"while": "^(?:\\1  |\\s*$)",
 			"patterns": [
 				{ "include": "#block-container_initial-line" },
@@ -1195,6 +1195,9 @@
     "string_literal": {
       "patterns": [
         {
+          "include": "#string_block_init-tag"
+        },
+        {
           "include": "#fmt_string_triple"
         },
         {
@@ -1231,6 +1234,22 @@
           "include": "#string_quoted_double"
         }
       ]
+    },
+    "string_block_init-tag": {
+      "name": "string.quoted.block.init-tag.nim",
+      "begin": "(\\w*)(\")(:)",
+      "end": "\\G\\s*$",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.string.nim"
+        },
+        "2": {
+          "name": "punctuation.definition.string.begin.nim"
+        },
+        "3": {
+          "name": "keyword.operator.nim"
+        }
+      }
     },
     "fmt_string": {
       "begin": "\\b(fmt)(\")",
