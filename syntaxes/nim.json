@@ -1015,6 +1015,43 @@
     }
   ],
   "repository": {
+		"blockstrings": {
+			"patterns": [
+				{ "include": "#block-container_string-raw" },
+				{ "include": "#block-container_string" }
+			]
+		},
+		"block-container_string-raw": {
+			"name": "meta.structure.block-container.string-raw.nim",
+			"begin": "(?=^( *)((?:[^#\"]|\"(?:\\.|[^\"])*\")*)(r\":)$)",
+			"while": "^(?:\\1  |\\s*$)",
+			"patterns": [
+				{ "include": "#block-initial-line" },
+				{
+					"match": "(?:[^\\s]|\\s(?!\\s*$))+",
+					"name": "string.quoted.block.raw.nim"
+				}
+			]
+		},
+		"block-container_string": {
+			"name": "meta.structure.block-container.string.nim",
+			"begin": "(?=^( *)((?:[^#\"]|\"(?:\\.|[^\"])*\")*)(\":)$)",
+			"while": "^(?:\\1  |\\s*$)",
+			"patterns": [
+				{ "include": "#block-container_initial-line" },
+				{ "include": "#string_escapes" },
+				{
+					"match": "(?:[^\\s\\\\]|\\s(?!\\s*$))+",
+					"name": "string.quoted.block.nim"
+				}
+			]
+		},
+		"block-container_initial-line": {
+			"begin": "^",
+			"end": "$",
+			"name": "meta.structure.block-container.initial-line.nim",
+			"patterns": [{ "include": "#expressions" }]
+		},
     "multilinecomment": {
       "begin": "#\\[",
       "end": "\\]#",
@@ -1086,11 +1123,19 @@
         {
           "match": "\\\\\\\\",
           "name": "constant.character.escape.backslash.nim"
+        },
+        {
+          "match": "\\\\.",
+          "name": "invalid.illegal.unknown-escape.nim"
         }
       ]
     },
     "string_escapes": {
       "patterns": [
+        {
+          "match": "\\\\$",
+          "name": "constant.character.escape.no-newline.nim"
+        },
         {
           "match": "\\\\[pP]",
           "name": "constant.character.escape.newline.nim"
