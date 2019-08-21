@@ -203,7 +203,7 @@
               "meta": "punctuation.definition.string.begin.nim"
             }
           },
-          "end": "\"",
+          "end": "\"|$",
           "endCaptures": {
             "0": "punctuation.definition.string.end.nim"
           },
@@ -1261,7 +1261,7 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "\"",
+      "end": "\"|$",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1314,7 +1314,7 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "\"",
+      "end": "\"|$",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1403,7 +1403,7 @@
         }
       },
       "comment": "Double Quoted String",
-      "end": "\"",
+      "end": "\"|$",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1423,7 +1423,7 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "\"",
+      "end": "\"|$",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1446,7 +1446,7 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "\"",
+      "end": "\"|$",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1467,7 +1467,7 @@
         }
       },
       "comment": "Single quoted character literal",
-      "end": "'",
+      "end": "'|$",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
