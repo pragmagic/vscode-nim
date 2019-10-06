@@ -1237,8 +1237,8 @@
     },
     "string_block_init-tag": {
       "name": "string.quoted.block.init-tag.nim",
-      "begin": "(\\w*)(\")(:)",
-      "end": "\\G\\s*$",
+      "begin": "(\\w*)(\")(:)(?=\\s*$)",
+      "end": "$",
       "beginCaptures": {
         "1": {
           "name": "support.function.any-method.nim"
