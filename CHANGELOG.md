@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 0.6.4 (30 Sep 2019)
+* Block string literals (#126)
+* Change envelope length to UTF-8 byte size (#124)
+* Update nimUtils.ts to support .nimble PATH (#122)
+* Exports increase indentation (#119)
+
 ## 0.6.3 (12 Feb 2019)
 * Shift-Enter: Send-Selected-Lines-To-REPL (#113)
 * Add pragma snippet (#114)

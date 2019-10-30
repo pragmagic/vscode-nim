@@ -2,7 +2,7 @@
     "name": "nim",
     "displayName": "Nim",
     "description": "Nim language support for Visual Studio Code",
-    "version": "0.6.3",
+    "version": "0.6.4",
     "publisher": "kosz78",
     "author": {
         "name": "Xored Software Inc."
@@ -35,11 +35,11 @@
         "nedb": "1.8.0"
     },
     "devDependencies": {
-        "@types/mocha": "^5.2.5",
-        "@types/node": "^10.10.0",
-        "tslint": "^5.11.0",
+        "@types/mocha": "^5.2.7",
+        "@types/node": "^10.14.19",
+        "tslint": "^5.20.0",
         "typescript": "^2.6.1",
-        "vscode": "^1.1.26"
+        "vscode": "^1.1.36"
     },
     "extensionDependencies": [
         "ms-vscode.cpptools"
@@ -112,7 +112,7 @@
                 "command": "nim.execSelectionInTerminal",
                 "title": "Run Selection/Line in Nim Terminal",
                 "category": "Nim"
-            }            
+            }
         ],
         "menus": {
             "editor/context": [
@@ -138,7 +138,7 @@
                 "key": "shift+enter",
                 "command": "nim.execSelectionInTerminal",
                 "when": "editorFocus && editorLangId == nim && !findInputFocussed && !replaceInputFocussed"
-            }            
+            }
         ],
         "configuration": {
             "type": "object",
