@@ -54,6 +54,18 @@ export function activate(ctx: vscode.ExtensionContext): void {
                 beforeText: new RegExp(String.raw`
                     ^\s*
                     (
+                        (case) \b .* :
+                    )
+                    \s*$
+                `.replace(/\s+?/g, '')),
+                action: {
+                    indentAction: vscode.IndentAction.None
+                }
+            },
+            {
+                beforeText: new RegExp(String.raw`
+                    ^\s*
+                    (
                         (
                             (proc|macro|iterator|template|converter|func) \b .*=
                         )|(
