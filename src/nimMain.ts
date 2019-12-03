@@ -48,57 +48,15 @@ export function activate(ctx: vscode.ExtensionContext): void {
     ctx.subscriptions.push(diagnosticCollection);
 
     vscode.languages.setLanguageConfiguration(NIM_MODE.language as string, {
-        // @Note Literal whitespace in below regexps is removed
-        onEnterRules: [
-            {
-                beforeText: new RegExp(String.raw`
-                    ^\s*
-                    (
-                        (case) \b .* :
-                    )
-                    \s*$
-                `.replace(/\s+?/g, '')),
-                action: {
-                    indentAction: vscode.IndentAction.None
-                }
-            },
-            {
-                beforeText: new RegExp(String.raw`
-                    ^\s*
-                    (
-                        (
-                            (proc|macro|iterator|template|converter|func) \b .*=
-                        )|(
-                            (import|export|let|var|const|type) \b
-                        )|(
-                            [^:]+:
-                        )
-                    )
-                    \s*$
-                `.replace(/\s+?/g, '')),
-                action: {
-                    indentAction: vscode.IndentAction.Indent
-                }
-            },
-            {
-                beforeText: new RegExp(String.raw`
-                ^\s*
-                    (
-                        (
-                            (return|raise|break|continue) \b .*
-                        )|(
-                            (discard) \b
-                        )
-                    )
-                    \s*
-                `.replace(/\s+?/g, '')),
-                action: {
-                    indentAction: vscode.IndentAction.Outdent
-                }
-            }
-        ],
-
+        indentationRules: {
+            increaseIndentPattern: /^\s*((((proc|macro|iterator|template|converter|func)\b.*\=)|(import|export|var|const|type)\s)|(import|export|let|var|const|type)|([^:]+:))$/,
+            decreaseIndentPattern: /^\s*(((return|break|continue|raise)\n)|((elif|else|except|finally)\b.*:))\s*$/
+        },
         wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
+        onEnterRules: [{
+            beforeText: /^\s*$/,
+            action: { indentAction: vscode.IndentAction.None }
+        }]
     });
 
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
@@ -232,13 +190,23 @@ function startBuildOnSaveWatcher(subscriptions: vscode.Disposable[]) {
 function runFile() {
     let editor = vscode.window.activeTextEditor;
     if (editor) {
+        var additionalArguments = "";
+        for (var i = 0; i < editor.document.lineCount; i++) {
+            var line = editor.document.lineAt(i);
+            var match = /#\s*vscode-nim\s+arguments:\s+(.*)/i.exec(line.text);
+            if (match) {
+                additionalArguments = match[1];
+                break;
+            }
+        }
+
         if (!terminal) {
             terminal = vscode.window.createTerminal('Nim');
         }
         terminal.show(true);
         if (editor.document.isUntitled) {
             terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-                ' -r "' + getDirtyFile(editor.document) + '"', true);
+                ' -r "' + getDirtyFile(editor.document) + '" ' + additionalArguments, true);
         } else {
             let outputDirConfig = vscode.workspace.getConfiguration('nim')['runOutputDirectory'];
             var outputParams = '';
@@ -268,7 +236,7 @@ function runFile() {
                 });
             } else {
                 terminal.sendText('nim ' + vscode.workspace.getConfiguration('nim')['buildCommand'] +
-                    outputParams + ' -r "' + editor.document.fileName + '"', true);
+                    outputParams + ' -r "' + editor.document.fileName + '" ' + additionalArguments, true);
             }
         }
     }
