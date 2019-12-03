@@ -26,7 +26,9 @@ export class NimCompletionItemProvider implements vscode.CompletionItemProvider 
             var suggestions: vscode.CompletionItem[] = [];
             if (items) {
               items.forEach(item => {
-                if (item.answerType === 'sug' && (!txt || item.symbolName.toLowerCase().indexOf(txt) >= 0)) {
+                if (item.answerType === 'sug'
+                    &&  (!txt || item.symbolName.toLowerCase().indexOf(txt) >= 0)
+                    && /[a-z]/i.test(item.symbolName)) {
                   var suggestion = new vscode.CompletionItem(item.symbolName);
                   suggestion.kind = vscodeKindFromNimSym(item.suggest);
                   suggestion.detail = nimSymDetails(item);
