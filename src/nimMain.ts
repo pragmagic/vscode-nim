@@ -190,7 +190,7 @@ function startBuildOnSaveWatcher(subscriptions: vscode.Disposable[]) {
 function runFile() {
     let editor = vscode.window.activeTextEditor;
     if (editor) {
-        var additionalArguments = "";
+        var additionalArguments = '';
         for (var i = 0; i < editor.document.lineCount; i++) {
             var line = editor.document.lineAt(i);
             var match = /#\s*vscode-nim\s+arguments:\s+(.*)/i.exec(line.text);
