@@ -56,7 +56,12 @@ export function activate(ctx: vscode.ExtensionContext): void {
         onEnterRules: [{
             beforeText: /^\s*$/,
             action: { indentAction: vscode.IndentAction.None }
-        }]
+        },
+        {
+            beforeText: /^(\s)*## /,
+            action: { indentAction: vscode.IndentAction.None, appendText: '## '}
+        }
+        ]
     });
 
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
@@ -110,6 +115,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     initImports();
     outputLine('[info] Extension Activated');
 }
+
 
 export function deactivate(): void {
     closeAllNimSuggestProcesses();
