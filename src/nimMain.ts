@@ -102,11 +102,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
         runCheck(vscode.window.activeTextEditor.document);
     }
 
-    if (config.has('nimsuggestRestartTimeout')) {
-        let timeout = config['nimsuggestRestartTimeout'] as number;
-        if (timeout > 0) {
-            console.log('Reset nimsuggest process each ' + timeout + ' minutes');
-            global.setInterval(() => closeAllNimSuggestProcesses(), timeout * 60000);
+    if (vscode.workspace.getConfiguration('nim').get('enableNimsuggest') as boolean) {
+        if (config.has('nimsuggestRestartTimeout')) {
+            let timeout = config['nimsuggestRestartTimeout'] as number;
+            if (timeout > 0) {
+                console.log('Reset nimsuggest process each ' + timeout + ' minutes');
+                global.setInterval(() => closeAllNimSuggestProcesses(), timeout * 60000);
+            }
         }
     }
 
