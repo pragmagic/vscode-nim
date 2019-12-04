@@ -192,7 +192,7 @@
                 "nim.nimsuggestRestartTimeout": {
                     "type": "integer",
                     "default": 60,
-                    "description": "Nimsuggest will be restarted after this timeout in minutes, if 0 then restart disabled."
+                    "description": "Nimsuggest will be restarted after this timeout in minutes, if 0 then restart disabled.\nThis option requires restart to take effect."
                 }
             }
         },
