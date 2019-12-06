@@ -19,7 +19,8 @@ export class NimFormattingProvider implements vscode.DocumentFormattingEditProvi
         resolve([]);
       } else {
         let file = getDirtyFile(document);
-        let res = cp.spawnSync(getNimPrettyExecPath(), ['--backup:OFF', file], { cwd: vscode.workspace.rootPath });
+        let config = vscode.workspace.getConfiguration('nim');
+        let res = cp.spawnSync(getNimPrettyExecPath(), ['--backup:OFF --indent:' + config['nimprettyIndent'] + ' --maxLineLen:' + config['nimprettyMaxLineLen'], file], { cwd: vscode.workspace.rootPath });
 
         if (res.status !== 0) {
           reject(res.error);
