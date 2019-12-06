@@ -188,6 +188,16 @@
                     "type": "integer",
                     "default": 60,
                     "description": "Nimsuggest will be restarted after this timeout in minutes, if 0 then restart disabled."
+                },
+                "nim.nimprettyIndent": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Nimpretty: set the number of spaces that is used for indentation\n--indent:0 means autodetection (default behaviour)."
+                },
+                "nim.nimprettyMaxLineLen": {
+                    "type": "integer",
+                    "default": 80,
+                    "description": "Nimpretty: set the desired maximum line length (default: 80)."
                 }
             }
         },
