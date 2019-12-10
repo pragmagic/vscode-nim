@@ -54,6 +54,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
         // @Note Literal whitespace in below regexps is removed
         onEnterRules: [
             {
+                beforeText: /^(\s)*## /,
+                action: { indentAction: vscode.IndentAction.None, appendText: '## '}
+            },
+            {
                 beforeText: new RegExp(String.raw`
                     ^\s*
                     (
@@ -157,6 +161,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     initImports();
     outputLine('[info] Extension Activated');
 }
+
 
 export function deactivate(): void {
     closeAllNimSuggestProcesses();
