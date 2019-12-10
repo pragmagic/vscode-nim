@@ -48,15 +48,57 @@ export function activate(ctx: vscode.ExtensionContext): void {
     ctx.subscriptions.push(diagnosticCollection);
 
     vscode.languages.setLanguageConfiguration(NIM_MODE.language as string, {
-        indentationRules: {
-            increaseIndentPattern: /^\s*((((proc|macro|iterator|template|converter|func)\b.*\=)|(import|export|var|const|type)\s)|(import|export|let|var|const|type)|([^:]+:))$/,
-            decreaseIndentPattern: /^\s*(((return|break|continue|raise)\n)|((elif|else|except|finally)\b.*:))\s*$/
-        },
+        // @Note Literal whitespace in below regexps is removed
+        onEnterRules: [
+            {
+                beforeText: new RegExp(String.raw`
+                    ^\s*
+                    (
+                        (case) \b .* :
+                    )
+                    \s*$
+                `.replace(/\s+?/g, '')),
+                action: {
+                    indentAction: vscode.IndentAction.None
+                }
+            },
+            {
+                beforeText: new RegExp(String.raw`
+                    ^\s*
+                    (
+                        (
+                            (proc|macro|iterator|template|converter|func) \b .*=
+                        )|(
+                            (import|export|let|var|const|type) \b
+                        )|(
+                            [^:]+:
+                        )
+                    )
+                    \s*$
+                `.replace(/\s+?/g, '')),
+                action: {
+                    indentAction: vscode.IndentAction.Indent
+                }
+            },
+            {
+                beforeText: new RegExp(String.raw`
+                ^\s*
+                    (
+                        (
+                            (return|raise|break|continue) \b .*
+                        )|(
+                            (discard) \b
+                        )
+                    )
+                    \s*
+                `.replace(/\s+?/g, '')),
+                action: {
+                    indentAction: vscode.IndentAction.Outdent
+                }
+            }
+        ],
+
         wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
-        onEnterRules: [{
-            beforeText: /^\s*$/,
-            action: { indentAction: vscode.IndentAction.None }
-        }]
     });
 
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
