@@ -36,14 +36,17 @@ export function activate(ctx: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('nim.check', runCheck);
     vscode.commands.registerCommand('nim.execSelectionInTerminal', execSelectionInTerminal);
 
-    initNimSuggest(ctx);
-    ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
-    ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
-    ctx.subscriptions.push(vscode.languages.registerReferenceProvider(NIM_MODE, new NimReferenceProvider()));
-    ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(NIM_MODE, new NimDocumentSymbolProvider()));
-    ctx.subscriptions.push(vscode.languages.registerSignatureHelpProvider(NIM_MODE, new NimSignatureHelpProvider(), '(', ','));
-    ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
-    ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(NIM_MODE, new NimFormattingProvider()));
+    if (vscode.workspace.getConfiguration('nim').get('enableNimsuggest') as boolean) {
+        initNimSuggest();
+        ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
+        ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
+        ctx.subscriptions.push(vscode.languages.registerReferenceProvider(NIM_MODE, new NimReferenceProvider()));
+        ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(NIM_MODE, new NimDocumentSymbolProvider()));
+        ctx.subscriptions.push(vscode.languages.registerSignatureHelpProvider(NIM_MODE, new NimSignatureHelpProvider(), '(', ','));
+        ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
+        ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(NIM_MODE, new NimFormattingProvider()));
+    }
+
     diagnosticCollection = vscode.languages.createDiagnosticCollection('nim');
     ctx.subscriptions.push(diagnosticCollection);
 
@@ -141,11 +144,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
         runCheck(vscode.window.activeTextEditor.document);
     }
 
-    if (config.has('nimsuggestRestartTimeout')) {
-        let timeout = config['nimsuggestRestartTimeout'] as number;
-        if (timeout > 0) {
-            console.log('Reset nimsuggest process each ' + timeout + ' minutes');
-            global.setInterval(() => closeAllNimSuggestProcesses(), timeout * 60000);
+    if (vscode.workspace.getConfiguration('nim').get('enableNimsuggest') as boolean) {
+        if (config.has('nimsuggestRestartTimeout')) {
+            let timeout = config['nimsuggestRestartTimeout'] as number;
+            if (timeout > 0) {
+                console.log('Reset nimsuggest process each ' + timeout + ' minutes');
+                global.setInterval(() => closeAllNimSuggestProcesses(), timeout * 60000);
+            }
         }
     }
 
