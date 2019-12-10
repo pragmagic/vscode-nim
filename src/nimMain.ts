@@ -36,32 +36,76 @@ export function activate(ctx: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('nim.check', runCheck);
     vscode.commands.registerCommand('nim.execSelectionInTerminal', execSelectionInTerminal);
 
-    initNimSuggest(ctx);
-    ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
-    ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
-    ctx.subscriptions.push(vscode.languages.registerReferenceProvider(NIM_MODE, new NimReferenceProvider()));
-    ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(NIM_MODE, new NimDocumentSymbolProvider()));
-    ctx.subscriptions.push(vscode.languages.registerSignatureHelpProvider(NIM_MODE, new NimSignatureHelpProvider(), '(', ','));
-    ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
-    ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(NIM_MODE, new NimFormattingProvider()));
+    if (vscode.workspace.getConfiguration('nim').get('enableNimsuggest') as boolean) {
+        initNimSuggest();
+        ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(NIM_MODE, new NimCompletionItemProvider(), '.', ' '));
+        ctx.subscriptions.push(vscode.languages.registerDefinitionProvider(NIM_MODE, new NimDefinitionProvider()));
+        ctx.subscriptions.push(vscode.languages.registerReferenceProvider(NIM_MODE, new NimReferenceProvider()));
+        ctx.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(NIM_MODE, new NimDocumentSymbolProvider()));
+        ctx.subscriptions.push(vscode.languages.registerSignatureHelpProvider(NIM_MODE, new NimSignatureHelpProvider(), '(', ','));
+        ctx.subscriptions.push(vscode.languages.registerHoverProvider(NIM_MODE, new NimHoverProvider()));
+        ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(NIM_MODE, new NimFormattingProvider()));
+    }
+
     diagnosticCollection = vscode.languages.createDiagnosticCollection('nim');
     ctx.subscriptions.push(diagnosticCollection);
 
     vscode.languages.setLanguageConfiguration(NIM_MODE.language as string, {
-        indentationRules: {
-            increaseIndentPattern: /^\s*((((proc|macro|iterator|template|converter|func)\b.*\=)|(import|export|var|const|type)\s)|(import|export|let|var|const|type)|([^:]+:))$/,
-            decreaseIndentPattern: /^\s*(((return|break|continue|raise)\n)|((elif|else|except|finally)\b.*:))\s*$/
-        },
+        // @Note Literal whitespace in below regexps is removed
+        onEnterRules: [
+            {
+                beforeText: /^(\s)*## /,
+                action: { indentAction: vscode.IndentAction.None, appendText: '## '}
+            },
+            {
+                beforeText: new RegExp(String.raw`
+                    ^\s*
+                    (
+                        (case) \b .* :
+                    )
+                    \s*$
+                `.replace(/\s+?/g, '')),
+                action: {
+                    indentAction: vscode.IndentAction.None
+                }
+            },
+            {
+                beforeText: new RegExp(String.raw`
+                    ^\s*
+                    (
+                        (
+                            (proc|macro|iterator|template|converter|func) \b .*=
+                        )|(
+                            (import|export|let|var|const|type) \b
+                        )|(
+                            [^:]+:
+                        )
+                    )
+                    \s*$
+                `.replace(/\s+?/g, '')),
+                action: {
+                    indentAction: vscode.IndentAction.Indent
+                }
+            },
+            {
+                beforeText: new RegExp(String.raw`
+                ^\s*
+                    (
+                        (
+                            (return|raise|break|continue) \b .*
+                        )|(
+                            (discard) \b
+                        )
+                    )
+                    \s*
+                `.replace(/\s+?/g, '')),
+                action: {
+                    indentAction: vscode.IndentAction.Outdent
+                }
+            }
+        ],
+
         wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
-        onEnterRules: [{
-            beforeText: /^\s*$/,
-            action: { indentAction: vscode.IndentAction.None }
-        },
-        {
-            beforeText: /^(\s)*## /,
-            action: { indentAction: vscode.IndentAction.None, appendText: '## '}
-        }
-        ]
     });
 
     vscode.window.onDidChangeActiveTextEditor(showHideStatus, null, ctx.subscriptions);
@@ -104,11 +148,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
         runCheck(vscode.window.activeTextEditor.document);
     }
 
-    if (config.has('nimsuggestRestartTimeout')) {
-        let timeout = config['nimsuggestRestartTimeout'] as number;
-        if (timeout > 0) {
-            console.log('Reset nimsuggest process each ' + timeout + ' minutes');
-            global.setInterval(() => closeAllNimSuggestProcesses(), timeout * 60000);
+    if (vscode.workspace.getConfiguration('nim').get('enableNimsuggest') as boolean) {
+        if (config.has('nimsuggestRestartTimeout')) {
+            let timeout = config['nimsuggestRestartTimeout'] as number;
+            if (timeout > 0) {
+                console.log('Reset nimsuggest process each ' + timeout + ' minutes');
+                global.setInterval(() => closeAllNimSuggestProcesses(), timeout * 60000);
+            }
         }
     }
 

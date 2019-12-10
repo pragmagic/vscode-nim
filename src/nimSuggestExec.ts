@@ -144,7 +144,7 @@ export function isNimSuggestVersion(version: string): boolean {
     return true;
 }
 
-export function initNimSuggest(ctx: vscode.ExtensionContext) {
+export function initNimSuggest() {
     prepareConfig();
     // let check nimsuggest related nim executable
     let nimSuggestNewPath = path.resolve(path.dirname(getNimExecPath()), correctBinname('nimsuggest'));
