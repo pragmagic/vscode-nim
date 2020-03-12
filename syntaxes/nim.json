@@ -5,7 +5,6 @@
   "keyEquivalent": "^~N",
   "name": "Nim",
   "patterns": [
-    { "include": "#blockstrings" },
     {
       "begin": "[ \\t]*##\\[",
       "contentName": "comment.block.doc-comment.content.nim",
@@ -73,12 +72,142 @@
       ]
     },
     {
+      "comment": "A nim procedure or method",
+      "name": "meta.proc.nim",
+      "patterns": [
+        {
+          "begin": "\\b(proc|method|template|macro|iterator|converter|func)\\s+\\`?([^\\:\\{\\s\\`\\*\\(]*)\\`?(\\s*\\*)?\\s*(?=\\(|\\=|:|\\[|\\n|\\{)",
+          "captures": {
+            "1": {
+              "name": "keyword.other"
+            },
+            "2": {
+              "name": "entity.name.function.nim"
+            },
+            "3": {
+              "name": "keyword.control.export"
+            }
+          },
+          "end": "\\)",
+          "patterns": [
+            {
+              "include": "source.nim"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "begin": "discard \"\"\"",
       "comment": "A discarded triple string literal comment",
       "end": "\"\"\"(?!\")",
       "name": "comment.line.discarded.nim"
     },
-    { "include": "#expressions" },
+    {
+      "include": "#float_literal"
+    },
+    {
+      "include": "#integer_literal"
+    },
+    {
+      "comment": "Operator as function name",
+      "match": "(?<=\\`)[^\\` ]+(?=\\`)",
+      "name": "entity.name.function.nim"
+    },
+    {
+      "captures": {
+        "1": {
+          "name": "keyword.control.export"
+        }
+      },
+      "comment": "Export qualifier.",
+      "match": "\\b\\s*(\\*)(?:\\s*(?=[,:])|\\s+(?=[=]))"
+    },
+    {
+      "comment": "Export qualifier following a type def.",
+      "match": "\\b([A-Z]\\w+)(\\*)",
+      "captures": {
+        "1": {
+          "name": "support.type.nim"
+        },
+        "2": {
+          "name": "keyword.control.export"
+        }
+      }
+    },
+    {
+      "include": "#string_literal"
+    },
+    {
+      "comment": "Language Constants.",
+      "match": "\\b(true|false|Inf|NegInf|NaN|nil)\\b",
+      "name": "constant.language.nim"
+    },
+    {
+      "comment": "Keywords that affect program control flow or scope.",
+      "match": "\\b(block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield)\\b",
+      "name": "keyword.control.nim"
+    },
+    {
+      "comment": "Keyword boolean operators for expressions.",
+      "match": "(\\b(and|in|is|isnot|not|notin|or|xor)\\b)",
+      "name": "keyword.boolean.nim"
+    },
+    {
+      "comment": "Generic operators for expressions.",
+      "match": "(=|\\+|-|\\*|/|<|>|@|\\$|~|&|%|!|\\?|\\^|\\.|:|\\\\)+",
+      "name": "keyword.operator.nim"
+    },
+    {
+      "comment": "Other keywords.",
+      "match": "(\\b(addr|as|asm|atomic|bind|cast|const|converter|concept|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|using|var|tuple|iterator|macro|func|method|proc|template)\\b)",
+      "name": "keyword.other.nim"
+    },
+    {
+      "comment": "Invalid and unused keywords.",
+      "match": "(\\b(generic|interface|lambda|out|shared)\\b)",
+      "name": "invalid.illegal.invalid-keyword.nim"
+    },
+    {
+      "comment": "Common functions",
+      "match": "\\b(new|await|assert|echo|defined|declared|newException|countup|countdown|high|low)\\b",
+      "name": "keyword.other.common.function.nim"
+    },
+    {
+      "comment": "Built-in, concrete types.",
+      "match": "\\b(((uint|int)(8|16|32|64)?)|float(32|64)?|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed)\\b",
+      "name": "storage.type.concrete.nim"
+    },
+    {
+      "comment": "Built-in, generic types.",
+      "match": "\\b(range|array|seq|set|pointer)\\b",
+      "name": "storage.type.generic.nim"
+    },
+    {
+      "comment": "Special types.",
+      "match": "\\b(openarray|varargs|void)\\b",
+      "name": "storage.type.generic.nim"
+    },
+    {
+      "comment": "Other constants.",
+      "match": "\\b[A-Z][A-Z0-9_]+\\b",
+      "name": "support.constant.nim"
+    },
+    {
+      "comment": "Other types.",
+      "match": "\\b[A-Z]\\w+\\b",
+      "name": "support.type.nim"
+    },
+    {
+      "comment": "Function call.",
+      "match": "\\b\\w+\\b(?=(\\[([a-zA-Z0-9_,]|\\s)+\\])?\\()",
+      "name": "support.function.any-method.nim"
+    },
+    {
+      "comment": "Function call (no parenthesis).",
+      "match": "(?!(openarray|varargs|void|range|array|seq|set|pointer|new|await|assert|echo|defined|declared|newException|countup|countdown|high|low|((uint|int)(8|16|32|64)?)|float(32|64)?|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed|addr|as|asm|atomic|bind|cast|const|converter|concept|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|using|var|tuple|iterator|macro|func|method|proc|template|and|in|is|isnot|not|notin|or|xor|proc|method|template|macro|iterator|converter|func|true|false|Inf|NegInf|NaN|nil|block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield)\\b)\\w+\\s+(?!(and|in|is|isnot|not|notin|or|xor|[^a-zA-Z0-9_\"'`(-+]+)\\b)(?=[a-zA-Z0-9_\"'`(-+])",
+      "name": "support.function.any-method.nim"
+    },
     {
       "begin": "(^\\s*)?(?=\\{\\.emit: ?\"\"\")",
       "beginCaptures": {
@@ -203,7 +332,7 @@
               "meta": "punctuation.definition.string.begin.nim"
             }
           },
-          "end": "\"|$",
+          "end": "\"",
           "endCaptures": {
             "0": "punctuation.definition.string.end.nim"
           },
@@ -891,178 +1020,6 @@
     }
   ],
   "repository": {
-    "expressions": {
-      "patterns": [
-        {
-          "comment": "A nim procedure or method",
-          "name": "meta.proc.nim",
-          "patterns": [
-            {
-              "begin": "\\b(proc|method|template|macro|iterator|converter|func)\\s+\\`?([^\\:\\{\\s\\`\\*\\(]*)\\`?(\\s*\\*)?\\s*(?=\\(|\\=|:|\\[|\\n|\\{)",
-              "captures": {
-                "1": {
-                  "name": "keyword.other"
-                },
-                "2": {
-                  "name": "entity.name.function.nim"
-                },
-                "3": {
-                  "name": "keyword.control.export"
-                }
-              },
-              "end": "\\)",
-              "patterns": [
-                {
-                  "include": "source.nim"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "include": "#float_literal"
-        },
-        {
-          "include": "#integer_literal"
-        },
-        {
-          "comment": "Operator as function name",
-          "match": "(?<=\\`)[^\\` ]+(?=\\`)",
-          "name": "entity.name.function.nim"
-        },
-        {
-          "captures": {
-            "1": {
-              "name": "keyword.control.export"
-            }
-          },
-          "comment": "Export qualifier.",
-          "match": "\\b\\s*(\\*)(?:\\s*(?=[,:])|\\s+(?=[=]))"
-        },
-        {
-          "comment": "Export qualifier following a type def.",
-          "match": "\\b([A-Z]\\w+)(\\*)",
-          "captures": {
-            "1": {
-              "name": "support.type.nim"
-            },
-            "2": {
-              "name": "keyword.control.export"
-            }
-          }
-        },
-        {
-          "include": "#string_literal"
-        },
-        {
-          "comment": "Language Constants.",
-          "match": "\\b(true|false|Inf|NegInf|NaN|nil)\\b",
-          "name": "constant.language.nim"
-        },
-        {
-          "comment": "Keywords that affect program control flow or scope.",
-          "match": "\\b(block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield)\\b",
-          "name": "keyword.control.nim"
-        },
-        {
-          "comment": "Keyword boolean operators for expressions.",
-          "match": "(\\b(and|in|is|isnot|not|notin|or|xor)\\b)",
-          "name": "keyword.boolean.nim"
-        },
-        {
-          "comment": "Generic operators for expressions.",
-          "match": "(=|\\+|-|\\*|/|<|>|@|\\$|~|&|%|!|\\?|\\^|\\.|:|\\\\)+",
-          "name": "keyword.operator.nim"
-        },
-        {
-          "comment": "Other keywords.",
-          "match": "(\\b(addr|as|asm|atomic|bind|cast|const|converter|concept|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|using|var|tuple|iterator|macro|func|method|proc|template)\\b)",
-          "name": "keyword.other.nim"
-        },
-        {
-          "comment": "Invalid and unused keywords.",
-          "match": "(\\b(generic|interface|lambda|out|shared)\\b)",
-          "name": "invalid.illegal.invalid-keyword.nim"
-        },
-        {
-          "comment": "Common functions",
-          "match": "\\b(new|await|assert|echo|defined|declared|newException|countup|countdown|high|low)\\b",
-          "name": "keyword.other.common.function.nim"
-        },
-        {
-          "comment": "Built-in, concrete types.",
-          "match": "\\b(((uint|int)(8|16|32|64)?)|float(32|64)?|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed)\\b",
-          "name": "storage.type.concrete.nim"
-        },
-        {
-          "comment": "Built-in, generic types.",
-          "match": "\\b(range|array|seq|set|pointer)\\b",
-          "name": "storage.type.generic.nim"
-        },
-        {
-          "comment": "Special types.",
-          "match": "\\b(openarray|varargs|void)\\b",
-          "name": "storage.type.generic.nim"
-        },
-        {
-          "comment": "Other constants.",
-          "match": "\\b[A-Z][A-Z0-9_]+\\b",
-          "name": "support.constant.nim"
-        },
-        {
-          "comment": "Other types.",
-          "match": "\\b[A-Z]\\w+\\b",
-          "name": "support.type.nim"
-        },
-        {
-          "comment": "Function call.",
-          "match": "\\b\\w+\\b(?=(\\[([a-zA-Z0-9_,]|\\s)+\\])?\\()",
-          "name": "support.function.any-method.nim"
-        },
-        {
-          "comment": "Function call (no parenthesis).",
-          "match": "(?!(openarray|varargs|void|range|array|seq|set|pointer|new|await|assert|echo|defined|declared|newException|countup|countdown|high|low|((uint|int)(8|16|32|64)?)|float(32|64)?|bool|string|auto|cstring|char|byte|tobject|typedesc|stmt|expr|any|untyped|typed|addr|as|asm|atomic|bind|cast|const|converter|concept|defer|discard|distinct|div|enum|export|from|import|include|let|mod|mixin|object|of|ptr|ref|shl|shr|static|type|using|var|tuple|iterator|macro|func|method|proc|template|and|in|is|isnot|not|notin|or|xor|proc|method|template|macro|iterator|converter|func|true|false|Inf|NegInf|NaN|nil|block|break|case|continue|do|elif|else|end|except|finally|for|if|raise|return|try|when|while|yield)\\b)\\w+\\s+(?!(and|in|is|isnot|not|notin|or|xor|[^a-zA-Z0-9_\"'`(-+]+)\\b)(?=[a-zA-Z0-9_\"'`(-+])",
-          "name": "support.function.any-method.nim"
-        }
-      ]
-    },
-		"blockstrings": {
-			"patterns": [
-				{ "include": "#block-container_string-raw" },
-				{ "include": "#block-container_string" }
-			]
-		},
-		"block-container_string-raw": {
-			"name": "meta.structure.block-container.string-raw.nim",
-			"begin": "(?=^( *)((?:[^#\"]|\"(?:\\\\.|[^\"])*\")*)(\\w+\":)\\s*$)(?!.*\"\"\")",
-			"while": "^(?:\\1  |\\s*$)",
-			"patterns": [
-				{ "include": "#block-container_initial-line" },
-				{
-					"match": "(?:[^\\s]|\\s(?!\\s*$))+",
-					"name": "string.quoted.block.raw.nim"
-				}
-			]
-		},
-		"block-container_string": {
-			"name": "meta.structure.block-container.string.nim",
-			"begin": "(?=^( *)((?:[^#\"]|\"(?:\\\\.|[^\"])*\")*)(\":)\\s*$)(?!.*\"\"\")",
-			"while": "^(?:\\1  |\\s*$)",
-			"patterns": [
-				{ "include": "#block-container_initial-line" },
-				{ "include": "#string_escapes" },
-				{
-					"match": "(?:[^\\s\\\\]|\\s(?!\\s*$))+",
-					"name": "string.quoted.block.nim"
-				}
-			]
-		},
-		"block-container_initial-line": {
-			"begin": "^",
-			"end": "$",
-			"name": "meta.structure.block-container.initial-line.nim",
-			"patterns": [{ "include": "#expressions" }]
-		},
     "multilinecomment": {
       "begin": "#\\[",
       "end": "\\]#",
@@ -1134,19 +1091,11 @@
         {
           "match": "\\\\\\\\",
           "name": "constant.character.escape.backslash.nim"
-        },
-        {
-          "match": "\\\\.",
-          "name": "invalid.illegal.unknown-escape.nim"
         }
       ]
     },
     "string_escapes": {
       "patterns": [
-        {
-          "match": "\\\\$",
-          "name": "constant.character.escape.no-newline.nim"
-        },
         {
           "match": "\\\\[pP]",
           "name": "constant.character.escape.newline.nim"
@@ -1200,9 +1149,6 @@
     "string_literal": {
       "patterns": [
         {
-          "include": "#string_block_init-tag"
-        },
-        {
           "include": "#fmt_string_triple"
         },
         {
@@ -1240,22 +1186,6 @@
         }
       ]
     },
-    "string_block_init-tag": {
-      "name": "string.quoted.block.init-tag.nim",
-      "begin": "(\\w*)(\")(:)(?=\\s*$)",
-      "end": "$",
-      "beginCaptures": {
-        "1": {
-          "name": "support.function.any-method.nim"
-        },
-        "2": {
-          "name": "punctuation.definition.string.begin.nim"
-        },
-        "3": {
-          "name": "keyword.operator.nim"
-        }
-      }
-    },
     "fmt_string": {
       "begin": "\\b(fmt)(\")",
       "beginCaptures": {
@@ -1266,7 +1196,7 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "\"|$",
+      "end": "\"",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1319,7 +1249,7 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "\"|$",
+      "end": "\"",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1408,7 +1338,7 @@
         }
       },
       "comment": "Double Quoted String",
-      "end": "\"|$",
+      "end": "\"",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1428,7 +1358,7 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "\"|$",
+      "end": "\"",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1451,7 +1381,7 @@
           "name": "punctuation.definition.string.begin.nim"
         }
       },
-      "end": "\"|$",
+      "end": "\"",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
@@ -1472,7 +1402,7 @@
         }
       },
       "comment": "Single quoted character literal",
-      "end": "'|$",
+      "end": "'",
       "endCaptures": {
         "0": {
           "name": "punctuation.definition.string.end.nim"
