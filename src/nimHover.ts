@@ -25,9 +25,9 @@ export class NimHoverProvider implements vscode.HoverProvider {
               label += ': ' + def.type;
             let hoverLabel = { language: NIM_MODE.language as string, value: label };
             if (def.documentation !== '') {
-              resolve(new vscode.Hover([hoverLabel, def.documentation], def.range));
+              resolve(new vscode.Hover([hoverLabel, def.documentation]));
             } else {
-              resolve(new vscode.Hover(hoverLabel, def.range));
+              resolve(new vscode.Hover(hoverLabel));
             }
           } else {
             resolve();
