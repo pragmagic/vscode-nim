@@ -1,5 +1,16 @@
 # ChangeLog
 
+## 0.6.5 (25 Mar 2020)
+* Evolution of project file mapping (#118)
+* Show hover info at current mouse position (#147)
+* Completion suggestions require alphanumerics (#136)
+* Manage Nimpretty params (#140)
+* Rename provider (#141)
+* Automatically continue ## doc comment to next line (#139)
+* Added setting to enable/disable nimsuggest completions (#137)
+* Changed indentation rules (#133)
+* Added highlight on call without ()
+
 ## 0.6.4 (30 Sep 2019)
 * Block string literals (#126)
 * Change envelope length to UTF-8 byte size (#124)
