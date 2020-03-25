@@ -181,9 +181,9 @@ export async function execNimSuggest(suggestType: NimSuggestType, filename: stri
         return [];
     }
 
-    // Dont run nimsuggest for nims files
+    // Dont run nimsuggest for nims files and cfg
     // See https://github.com/pragmagic/vscode-nim/issues/84
-    if (path.extname(filename).toLowerCase() === '.nims') {
+    if (path.extname(filename).toLowerCase() === '.nims' || path.extname(filename).toLowerCase() === '.cfg') {
         return [];
     }
 
@@ -266,16 +266,20 @@ export async function closeAllNimSuggestProcesses(): Promise<void> {
 export async function closeNimSuggestProcess(project: ProjectFileInfo): Promise<void> {
     var file = toLocalFile(project);
     if (nimSuggestProcessCache[file]) {
-        let desc = await nimSuggestProcessCache[file];
-        if (desc) {
-            if (desc.rpc) {
-                desc.rpc.stop();
+        try {
+            let desc = await nimSuggestProcessCache[file];
+            if (desc) {
+                if (desc.rpc) {
+                    desc.rpc.stop();
+                }
+                if (desc.process) {
+                    desc.process.kill();
+                }
             }
-            if (desc.process) {
-                desc.process.kill();
-            }
+            nimSuggestProcessCache[file] = undefined;
+        } catch {
+            nimSuggestProcessCache[file] = undefined;
         }
-        nimSuggestProcessCache[file] = undefined;
     }
 }
 

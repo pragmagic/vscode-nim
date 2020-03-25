@@ -185,7 +185,7 @@ function runCheck(document?: vscode.TextDocument) {
         }
     }
 
-    if (!document || document.languageId !== 'nim') {
+    if (!document || document.languageId !== 'nim' || document.fileName.endsWith('nim.cfg')) {
         return;
     }
 

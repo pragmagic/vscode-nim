@@ -149,6 +149,11 @@
                     "default": [],
                     "description": "Nim project file, if empty use current selected."
                 },
+                "nim.projectMapping": {
+                    "type": "object",
+                    "default": {},
+                    "description": "For non project mode list of per file project mapping using regex, for example ```{\"(.*).inim\": \"$1.nim\"}```"
+                },
                 "nim.test-project": {
                     "type": "string",
                     "default": "",

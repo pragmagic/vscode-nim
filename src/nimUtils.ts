@@ -16,8 +16,14 @@ export interface ProjectFileInfo {
     filePath: string;
 }
 
+export interface ProjectMappingInfo {
+    fileRegex: RegExp;
+    projectPath: string;
+}
+
 let _pathesCache: { [tool: string]: string; } = {};
 var _projects: ProjectFileInfo[] = [];
+var _projectMapping: ProjectMappingInfo[] = [];
 
 export function getNimExecPath(): string {
     let path = getBinPath('nim');
@@ -125,7 +131,22 @@ export function getNimbleExecPath(): string {
 
 export function getProjectFileInfo(filename: string): ProjectFileInfo {
     if (!isProjectMode()) {
-        return toProjectInfo(filename);
+        if (_projectMapping.length > 0) {
+            var projectInfo: ProjectFileInfo | undefined;
+            let uriPath = vscode.Uri.file(filename).path;
+            _projectMapping.forEach(mapping => {
+                if (mapping.fileRegex.test(uriPath)) {
+                    projectInfo = toProjectInfo(uriPath.replace(mapping.fileRegex, mapping.projectPath));
+                    return;
+                }
+            });
+            if (!projectInfo) {
+                projectInfo = toProjectInfo(filename);
+            }
+            return projectInfo;
+        } else {
+            return toProjectInfo(filename);
+        }
     }
     for (const project of _projects) {
         if (filename.startsWith(path.dirname(toLocalFile(project)))) {
@@ -169,13 +190,23 @@ export function prepareConfig(): void {
             });
         }
     }
+    let projectMapping = config['projectMapping'];
+    _projectMapping = [];
+    if (projectMapping) {
+        if (projectMapping instanceof Object) {
+            for (const key in projectMapping) {
+                if (projectMapping.hasOwnProperty(key)) {
+                    const path = <string> projectMapping[key];
+                    _projectMapping.push({ fileRegex: new RegExp(key), projectPath: path });
+                }
+            }
+        }
+    }
 }
 
 export function getBinPath(tool: string): string {
     if (_pathesCache[tool]) return _pathesCache[tool];
     if (process.env['PATH']) {
-        // add support for choosenim
-        process.env['PATH'] = process.env['PATH'] + (<any>path).delimiter + process.env['HOME'] + '/.nimble/bin';
         var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
         _pathesCache[tool] = pathparts.map(dir => path.join(dir, correctBinname(tool))).filter(candidate => fs.existsSync(candidate))[0];
         if (process.platform !== 'win32') {
