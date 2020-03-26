@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 0.6.6 (26 Mar 2020)
+* Nim not found in path (#153)
+
 ## 0.6.5 (25 Mar 2020)
 * Evolution of project file mapping (#118)
 * Show hover info at current mouse position (#147)
