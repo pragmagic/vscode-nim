@@ -313,12 +313,14 @@
               "name": "meta.preprocessor.pragma.nim"
             },
             "2": {
-              "meta": "punctuation.definition.string.begin.nim"
+              "name": "punctuation.definition.string.begin.nim"
             }
           },
           "end": "\"\"\"(?!\")",
           "endCaptures": {
-            "0": "punctuation.definition.string.end.nim"
+            "0": {
+              "name": "punctuation.definition.string.end.nim"
+            }
           },
           "name": "string.quoted.triple.raw.nim"
         },
@@ -329,12 +331,14 @@
               "name": "meta.preprocessor.pragma.nim"
             },
             "2": {
-              "meta": "punctuation.definition.string.begin.nim"
+              "name": "punctuation.definition.string.begin.nim"
             }
           },
           "end": "\"",
           "endCaptures": {
-            "0": "punctuation.definition.string.end.nim"
+            "0": {
+              "name": "punctuation.definition.string.end.nim"
+            }
           },
           "name": "string.quoted.double.raw.nim"
         },
