@@ -11,6 +11,7 @@ import path = require('path');
 import fs = require('fs');
 import elrpc = require('./elrpc/elrpc');
 import { prepareConfig, getProjectFileInfo, isProjectMode, getNimExecPath, correctBinname, ProjectFileInfo, toLocalFile } from './nimUtils';
+import * as rd from 'readline'
 
 class NimSuggestProcessDescription {
     process?: cp.ChildProcess;
@@ -281,10 +282,18 @@ export async function closeNimSuggestProcess(project: ProjectFileInfo): Promise<
             nimSuggestProcessCache[file] = undefined;
         }
     }
-}
 
 async function getNimSuggestProcess(nimProject: ProjectFileInfo): Promise<NimSuggestProcessDescription | undefined> {
     let projectPath = toLocalFile(nimProject);
+    
+    var reader = rd.createInterface(fs.createReadStream(projectPath))
+    var backend: string
+    reader.on('line', (l: string) => {
+        var tokens = l.split(' ')
+        if (tokens.length == 3 && tokens[0].toLowerCase() == 'backend' && tokens[1] == '=')
+            backend = tokens[2]
+    })
+
     if (!nimSuggestProcessCache[projectPath]) {
         nimSuggestProcessCache[projectPath] = new Promise<NimSuggestProcessDescription>((resolve, reject) => {
             let nimConfig = vscode.workspace.getConfiguration('nim');
@@ -294,6 +303,9 @@ async function getNimSuggestProcess(nimProject: ProjectFileInfo): Promise<NimSug
             }
             if (!!nimConfig['useNimsuggestCheck']) {
                 args.push('--refresh:on');
+            }
+            if (backend.toLowerCase() == "js") {
+                args.push('-d:js')
             }
 
             args.push(nimProject.filePath);
