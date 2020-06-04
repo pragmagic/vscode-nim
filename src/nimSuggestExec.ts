@@ -10,7 +10,7 @@ import cp = require('child_process');
 import path = require('path');
 import fs = require('fs');
 import elrpc = require('./elrpc/elrpc');
-import { prepareConfig, getProjectFileInfo, isProjectMode, getNimExecPath, correctBinname, ProjectFileInfo, toLocalFile } from './nimUtils';
+import { prepareConfig, getProjectFileInfo, isProjectMode, getBinPath, ProjectFileInfo, toLocalFile } from './nimUtils';
 
 class NimSuggestProcessDescription {
     process?: cp.ChildProcess;
@@ -147,7 +147,7 @@ export function isNimSuggestVersion(version: string): boolean {
 export function initNimSuggest() {
     prepareConfig();
     // let check nimsuggest related nim executable
-    let nimSuggestNewPath = path.resolve(path.dirname(getNimExecPath()), correctBinname('nimsuggest'));
+    let nimSuggestNewPath = path.resolve(getBinPath('nimsuggest'));
     if (fs.existsSync(nimSuggestNewPath)) {
         _nimSuggestPath = nimSuggestNewPath;
         let versionOutput = cp.spawnSync(getNimSuggestPath(), ['--version'], { cwd: vscode.workspace.rootPath }).output.toString();

@@ -10,6 +10,7 @@ import cp = require('child_process');
 import os = require('os');
 import { isWorkspaceFile, getNimExecPath, getProjectFileInfo, getProjects, isProjectMode, ProjectFileInfo, toLocalFile, outputLine } from './nimUtils';
 import { execNimSuggest, NimSuggestType, NimSuggestResult } from './nimSuggestExec';
+import { QuickPickItem } from 'vscode';
 
 export interface ICheckResult {
     file: string;
@@ -172,18 +173,87 @@ export function activateEvalConsole() {
     });
 }
 
-export function execSelectionInTerminal(document?: vscode.TextDocument) {
+export async function execSelectionInTerminal(document?: vscode.TextDocument) {
     if (vscode.window.activeTextEditor) {
-        if (!getNimExecPath()) {
-            return;
-        }
-
+        const text = vscode.window.activeTextEditor.document.getText(vscode.window.activeTextEditor.selection);
         if (!evalTerminal) {
+            // Select type of terminal
+            const executable = await selectTerminal();
+
+            if (!executable) {
+                return;
+            }
+            const execPath = getNimExecPath(executable);
+
             evalTerminal = vscode.window.createTerminal('Nim Console');
             evalTerminal.show(true);
-            evalTerminal.sendText(getNimExecPath() + ' ' + 'secret\n');
+            if (executable === 'nim') {
+                evalTerminal.sendText(execPath + ' secret\n');
+            } else if (executable === 'inim') {
+                evalTerminal.sendText(execPath + ' --noAutoIndent\n');
+            }
+            // Sometimes the terminal takes some time before accepting input
+            await new Promise((resolve) => setTimeout(resolve, 3000));
         }
-        evalTerminal.sendText(vscode.window.activeTextEditor.document.getText(vscode.window.activeTextEditor.selection));
-        // evalTerminal.sendText('\n');
+        evalTerminal.sendText(maintainIndentation(text));
+        evalTerminal.sendText('\n');
     }
+}
+
+async function selectTerminal(): Promise<string | undefined> {
+    const items: QuickPickItem[] = [
+        {
+            label: 'nim',
+            description: 'Using `nim secret` command'
+        },
+        {
+            label: 'inim',
+            description: 'Using `inim` command'
+        }];
+    const _quickPick = await vscode.window.showQuickPick(items);
+    return _quickPick ? _quickPick.label : undefined;
+}
+
+function maintainIndentation(text: string): string {
+    const tmp = text.split(/\r?\n/);
+
+    if (tmp.length <= 1) {
+        return text;
+    }
+
+    // If previous line is indented, this line is empty
+    // and next line with text is indented then this line should be indented
+    for (let i = 0; i < tmp.length - 2; ++i) {
+        // Empty line
+        if (tmp[i].length === 0) {
+            const spaces = nextLineWithTextIndentation(tmp.slice(i + 1));
+            // Further down, there is an indented line, so this empty line
+            // should be indented
+            if (spaces > 0) {
+                tmp[i] = ' '.repeat(spaces);
+            }
+        }
+    }
+
+    return tmp.join('\n');
+}
+
+function nextLineWithTextIndentation(tmp: string[]): number {
+    for (let i = 0; i < tmp.length - 1; ++i) {
+        // Empty lines are ignored
+        if (tmp[i] === '') {
+            continue;
+        }
+
+        // Spaced line, this is indented
+        const m = tmp[i].match(/^ */);
+        if (m && m[0].length) {
+            return m[0].length;
+        }
+
+        // Normal line without indentation
+        break;
+    }
+
+    return 0;
 }
