@@ -25,10 +25,10 @@ let _pathesCache: { [tool: string]: string; } = {};
 var _projects: ProjectFileInfo[] = [];
 var _projectMapping: ProjectMappingInfo[] = [];
 
-export function getNimExecPath(): string {
-    let path = getBinPath('nim');
+export function getNimExecPath(executable: string = 'nim'): string {
+    let path = getBinPath(executable);
     if (!path) {
-        vscode.window.showInformationMessage('No \'nim\' binary could be found in PATH environment variable');
+        vscode.window.showInformationMessage(`No \'${executable}\' binary could be found in PATH environment variable`);
     }
     return path;
 }
@@ -103,7 +103,7 @@ export function toLocalFile(project: ProjectFileInfo): string {
 export function getNimPrettyExecPath(): string {
     let toolname = 'nimpretty';
     if (!_pathesCache[toolname]) {
-        let nimPrettyPath = path.resolve(path.dirname(getNimExecPath()), correctBinname(toolname));
+        let nimPrettyPath = path.resolve(getBinPath(toolname));
         if (fs.existsSync(nimPrettyPath)) {
             _pathesCache[toolname] = nimPrettyPath;
         } else {
@@ -119,7 +119,7 @@ export function getNimPrettyExecPath(): string {
 export function getNimbleExecPath(): string {
     let toolname = 'nimble';
     if (!_pathesCache[toolname]) {
-        let nimblePath = path.resolve(path.dirname(getNimExecPath()), correctBinname(toolname));
+        let nimblePath = path.resolve(getBinPath(toolname));
         if (fs.existsSync(nimblePath)) {
             _pathesCache[toolname] = nimblePath;
         } else {
@@ -210,7 +210,12 @@ export function getBinPath(tool: string): string {
         // add support for choosenim
         process.env['PATH'] = process.env['PATH'] + (<any>path).delimiter + process.env['HOME'] + '/.nimble/bin';
         var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
-        _pathesCache[tool] = pathparts.map(dir => path.join(dir, correctBinname(tool))).filter(candidate => fs.existsSync(candidate))[0];
+        const endings = process.platform === 'win32' ? ['.exe', '.cmd', ''] : [''];
+        _pathesCache[tool] = pathparts
+            .map(dir => endings.map(ending => path.join(dir, tool + ending)))
+            // Flatten array of ['path/to/candidate.exe', 'path/to/candidate.cmd']
+            .reduce((acc, x) => acc.concat(x, []))
+            .filter(candidate => fs.existsSync(candidate))[0];
         if (process.platform !== 'win32') {
             try {
                 let nimPath;
