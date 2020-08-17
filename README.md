@@ -36,17 +36,17 @@ The following Visual Studio Code settings are available for the Nim extension.  
 * `nim.buildOnSave` - perform build task from `tasks.json` file, to use this options you need declare build task according to [Tasks Documentation](https://code.visualstudio.com/docs/editor/tasks), for example:
 	```json
 	{
-		"taskName": "Run module.nim",
-		"command": "nim",
-		"args": ["c", "-r", "module.nim"],
-		"options": {
-			"cwd": "${workspaceRoot}"
-		},
-		"type": "shell",
-		"group": {
-			"kind": "build",
-			"isDefault": true
-		}
+	   "taskName": "Run module.nim",
+	   "command": "nim",
+	   "args": ["c", "-o:bin/${fileBasenameNoExtension}", "-r", "${fileBasename}"],
+	   "options": {
+	      "cwd": "${workspaceRoot}"
+	   },
+	   "type": "shell",
+	   "group": {
+	      "kind": "build",
+	      "isDefault": true
+	   }
 	}
 	```
 * `nim.lintOnSave` - perform the project check for errors on save
