@@ -209,6 +209,9 @@ export function getBinPath(tool: string): string {
     if (process.env['PATH']) {
         // add support for choosenim
         process.env['PATH'] = process.env['PATH'] + (<any>path).delimiter + process.env['HOME'] + '/.nimble/bin';
+        if (process.platform === 'win32') {
+            process.env['PATH'] = process.env['PATH'] + (<any>path).delimiter + process.env['USERPROFILE'] + '/.nimble/bin';
+        }
         var pathparts = (<string>process.env.PATH).split((<any>path).delimiter);
         const endings = process.platform === 'win32' ? ['.exe', '.cmd', ''] : [''];
         _pathesCache[tool] = pathparts
