@@ -516,7 +516,7 @@
               "name": "keyword.operator.nim"
             },
             {
-              "include": "text.html"
+              "include": "text.html.basic"
             }
           ]
         }
