@@ -201,6 +201,7 @@ function runCheck(document?: vscode.TextDocument) {
         var err: { [key: string]: boolean; } = {};
         errors.forEach(error => {
             if (!err[error.file + error.line + error.column + error.msg]) {
+                if (!error.severity) return
                 let targetUri = error.file;
                 let endColumn = error.column;
                 if (error.msg.indexOf('\'') >= 0) {
