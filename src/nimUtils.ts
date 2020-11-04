@@ -10,6 +10,7 @@ import path = require('path');
 import os = require('os');
 import cp = require('child_process');
 import vscode = require('vscode');
+const mkdirp = require('mkdirp');
 
 export interface ProjectFileInfo {
     wsFolder: vscode.WorkspaceFolder;
@@ -156,12 +157,36 @@ export function getProjectFileInfo(filename: string): ProjectFileInfo {
     return _projects[0];
 }
 
+declare global {
+   interface String {
+     hashCode(): number;
+   }
+ }
+
+/* fast string hash from https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/ */
+String.prototype.hashCode = function () {
+    var hash = 0, i, chr;
+    for (i = 0; i < this.length; i++) {
+        chr   = this.charCodeAt(i);
+        hash  = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+};
+
 /**
  * Returns temporary file path of edited document.
  */
 export function getDirtyFile(document: vscode.TextDocument): string {
-    var dirtyFilePath = path.normalize(path.join(os.tmpdir(), 'vscodenimdirty.nim'));
+    let projectInfo = getProjectFileInfo(document.fileName);
+    let projectFilePath = document.fileName.substring(projectInfo.wsFolder.uri.path.length);
+    let uniqueStringHash = projectInfo.wsFolder.uri.path.hashCode();
+    let dirtyFilePath = path.normalize(path.join(os.tmpdir(), projectInfo.wsFolder.name + '-' + uniqueStringHash.toString(), projectFilePath));
+    if (fs.existsSync(dirtyFilePath) === false) {
+        mkdirp.sync(path.dirname(dirtyFilePath));
+    }
     fs.writeFileSync(dirtyFilePath, document.getText());
+
     return dirtyFilePath;
 }
 
