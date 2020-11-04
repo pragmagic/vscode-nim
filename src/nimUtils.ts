@@ -10,6 +10,7 @@ import path = require('path');
 import os = require('os');
 import cp = require('child_process');
 import vscode = require('vscode');
+const mkdirp = require('mkdirp');
 
 export interface ProjectFileInfo {
     wsFolder: vscode.WorkspaceFolder;
@@ -160,8 +161,14 @@ export function getProjectFileInfo(filename: string): ProjectFileInfo {
  * Returns temporary file path of edited document.
  */
 export function getDirtyFile(document: vscode.TextDocument): string {
-    var dirtyFilePath = path.normalize(path.join(os.tmpdir(), 'vscodenimdirty.nim'));
+    let projectInfo = getProjectFileInfo(document.fileName);
+    let projectFilePath = document.fileName.substring(projectInfo.wsFolder.uri.path.length);
+    var dirtyFilePath = path.normalize(path.join(os.tmpdir(), projectInfo.wsFolder.name, projectFilePath));
+    if (fs.existsSync(dirtyFilePath) === false) {
+        mkdirp.sync(path.dirname(dirtyFilePath));
+    }
     fs.writeFileSync(dirtyFilePath, document.getText());
+
     return dirtyFilePath;
 }
 
